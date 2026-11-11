@@ -112,6 +112,53 @@ torch 2.15.0's CPU build, SFPI 7.89.0), on the default grid and on a reduced wor
 lines are in its docstring. The examples' bars: a relative error below 1 % (0.5 % for
 the ternary matmul), the tokens equal, the experts equal to torch's top 4.
 
+## gated_delta
+
+`gated_delta/` has its own runner, `gated_delta/run_tests.sh`: every check in `gated_delta/tests/`, then its four
+examples, each in its own Python process, with each run's output kept in `gated_delta/logs/`. It runs in the same
+kind of environment as above; its own run used these versions:
+
+| Step | Ran on |
+|---|---|
+| Python | 3.12 |
+| `ttnn` | 0.81.1, the PyPI wheel, with `torch` from PyPI |
+| Simulator | ttsim v1.15.1, `soc_descriptor.yaml` beside the library |
+| SFPI | 7.89.0, unpacked into `ttnn/runtime` |
+| `TT_METAL_MODELS` | a plain tt-metal v0.81.1 checkout, for `check_pconv` and `check_pgates` (skipped without it) |
+| Build | none: the kernels are compiled by tt-metal's JIT at their first call |
+
+```
+export TT_METAL_SIMULATOR=/path/to/libttsim_bh.so TT_METAL_SLOW_DISPATCH_MODE=1
+export TT_METAL_MODELS=/path/to/tt-metal       # optional: adds check_pconv and check_pgates
+gated_delta/run_tests.sh                       # or gated_delta/run_tests.sh /path/to/python
+```
+
+The examples also run on their own (from `gated_delta/`): `python examples/gated_deltanet.py` (a prompt through the
+scan, then decode steps), `python examples/verify.py` (4 rows in one verify call, the state slots and a 2-row
+rollback through `gdn_commit`), `python examples/conv.py` (an 8-token chunk, then one-token steps) and
+`python examples/mamba2_mixer.py` (a 16-token prompt and 2 decode steps). Each checks itself against float64 and
+exits 1 on a miss; `gated_delta/README.md` shows their printed numbers.
+
+`run_tests.sh` printed, on ttsim's default grid and on a reduced compute grid alike:
+
+```
+pass  check
+pass  check_rows
+pass  check_decode
+pass  check_conv
+pass  check_ssm
+pass  check_kda
+pass  check_commit
+pass  check_mixer
+pass  check_pconv
+pass  check_pgates
+pass  example
+pass  example_verify
+pass  example_conv
+pass  example_mixer
+run_tests: 14 passed, 0 failed, 0 skipped
+```
+
 ## On a card
 
 Not tested on hardware. With a Tenstorrent card the simulator steps (the ttsim library, the soc descriptor,

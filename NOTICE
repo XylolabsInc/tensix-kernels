@@ -30,6 +30,14 @@ the Tenstorrent copyright notice of each such tt-metal file exactly as it appear
   ttnn/cpp/ttnn/operations/matmul/device/factory/matmul_multicore_reuse_mcast_dram_sharded_program_factory.cpp
   (SPDX-FileCopyrightText: 2026 Tenstorrent USA, Inc.).
 
+- gated_delta/kernels/gdn_compute.cpp, gated_delta/kernels/gdn_ops.h (its tile helpers),
+  gated_delta/kernels/gdn_reader.cpp, gated_delta/kernels/gdn_writer.cpp: adapted from the "mono" program of
+  tt-metal's chunk_gated_delta_rule op,
+  ttnn/cpp/ttnn/operations/transformer/chunk_gated_delta_rule/device/kernels/compute/chunk_gated_delta_rule.cpp,
+  .../device/kernels/dataflow/reader_chunk_gated_delta_rule.cpp, chunk_gdn_gate_read.hpp and
+  .../device/kernels/dataflow/writer_chunk_gated_delta_rule.cpp
+  (SPDX-FileCopyrightText: 2026 Tenstorrent USA, Inc.); gated_delta/ORIGINS.md lists the changes.
+
 The kernels are built against tt-metal's kernel APIs (its compute, dataflow and SFPI headers, and the few internals the
 README lists under "Not documented kernel API"), which are not part of this product.
 

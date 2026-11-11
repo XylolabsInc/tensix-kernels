@@ -1,9 +1,29 @@
+<div align="center">
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/XylolabsInc/tensix-bfp-gptq/main/assets/xylolabs-lockup-dark.svg">
+  <img src="https://raw.githubusercontent.com/XylolabsInc/tensix-bfp-gptq/main/assets/xylolabs-lockup.svg" alt="Xylolabs" height="40">
+</picture>
+
 # tensix-kernels
+
+**Device kernels for LLM inference on Tenstorrent Tensix NPUs, launched from Python through ttnn**
+
+[![License](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
+[![ttnn](https://img.shields.io/badge/ttnn-0.81.1-5B2C83)](https://github.com/tenstorrent/tt-metal/releases/tag/v0.81.1)
+[![ttsim](https://img.shields.io/badge/tested%20on-ttsim-5B2C83)](https://github.com/tenstorrent/ttsim)
+[![Hugging Face](https://img.shields.io/badge/Hugging%20Face-models-FFD21E)](https://huggingface.co/Xylolabs)
+
+`tenstorrent` · `tensix` · `tt-metal` · `ttnn` · `kernels` · `llm-inference` · `gated-deltanet` · `mixture-of-experts`
+
+</div>
 
 Device kernels for LLM decode on Tenstorrent Tensix devices, written against stock tt-metal / ttnn and launched from
 Python through `ttnn.generic_op` (the kernels are compiled by tt-metal's JIT at the first call; nothing in tt-metal is
 rebuilt or patched). They target the parts of decode that are bound by reading weights from DRAM: each weight is read
 once, in large contiguous requests, by the cores next to its DRAM bank, with the output stage fused in.
+`gated_delta/` adds the recurrent layers of hybrid models (Gated DeltaNet, Kimi Delta Attention, Mamba-2), for
+prefill and decode.
 
 | Package | What |
 |---|---|
@@ -12,6 +32,7 @@ once, in large contiguous requests, by the cores next to its DRAM bank, with the
 | [`moe/`](moe/README.md) | A mixture-of-experts layer that reads only the chosen experts: routing on the device (softmax or sigmoid, top-k), gate/up and down for one token and for up to 32 rows (each expert of the rows' union read once), `bfloat4_b` expert packing |
 | [`int4/`](int4/README.md) | An int4-weight matmul for one token with a scale per 32 inputs, and the dequantize to `bfloat8_b` for many rows |
 | [`ternary_matmul/`](ternary_matmul/README.md) | A ternary-weight matmul (BFP2_b tiles) with group scales, an optional fused block Hadamard rotation, for one token and for many rows |
+| [`gated_delta/`](gated_delta/README.md) | The linear-attention layers of hybrid models: the gated delta rule (Gated DeltaNet), Kimi Delta Attention and the Mamba-2 state update, as a chunked prefill, a recurrent step of 1 to 32 rows a call with state slots for speculative verify, the causal conv with its rolling state, and a whole Mamba-2 mixer |
 | `common/` | Shared pieces: the kernel source loader, DRAM bank and core placement helpers, the compute helpers (`kernels/dense_ops.h`), the split loaders' chunk pattern (`kernels/split.h`), the test runner |
 | `examples/` | One small runnable example per package: build inputs, call the public API, compare with torch |
 | `scripts/` | `setup_ttsim.sh` (the install for running on ttsim) and `run_checks.sh` (every test and example); see [RUNNING.md](RUNNING.md) |
@@ -85,6 +106,7 @@ python -s int4/tests/test_int4.py
 python -s ternary_matmul/tests/test_ternary.py
 pytest -s .                       # the same, with pytest installed
 scripts/run_checks.sh             # every test, then every example (RUNNING.md)
+gated_delta/run_tests.sh          # gated_delta's checks and its four examples (gated_delta/README.md)
 ```
 
 They were run on ttsim with tt-metal / ttnn 0.81.1, on the default 11 x 10 worker grid and on a reduced worker grid,
@@ -104,4 +126,6 @@ error and PCC against a float64 reference otherwise.
 ## License
 
 Apache License, Version 2.0 ([LICENSE](LICENSE)). Parts follow the structure of tt-metal files, credited in
-[NOTICE](NOTICE); [ORIGINS.md](ORIGINS.md) lists where every file comes from and how that was checked.
+[NOTICE](NOTICE); [ORIGINS.md](ORIGINS.md) lists where every file comes from and how that was checked, and
+[gated_delta/ORIGINS.md](gated_delta/ORIGINS.md) does the same for `gated_delta/`. This is an independent project, not
+affiliated with Tenstorrent.
