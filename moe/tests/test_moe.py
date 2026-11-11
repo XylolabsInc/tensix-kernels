@@ -13,9 +13,7 @@ Experts are random matrices on the BFP4_b grid (so the packed weights hold them 
 - a gate/up bias, column groups (two banks) and the K-block layout (kblock) at HiFi4 against the reference;
 - gate_up_rows and down_rows (R rows, each with its own experts) at HiFi4 against the reference, rows past R zero; two
   loaders against one, bit for bit;
-- the same ops at HiFi2 (the ops' default fidelity): relative error below REL_HIFI2 (1.6 %; measured up to 1.40 %, on
-  down's y with gelu_tanh). HiFi2 makes two of the matrix unit's four multiply passes over the operands' mantissas,
-  so its products leave out low-order bits that HiFi4 keeps: a property of the fidelity, the same on any device;
+- the same ops at HiFi2 (the ops' default fidelity): relative error below REL_HIFI2 (1.6 %);
 - route: the picks equal the float64 reference's (the lower id among equal keys), each weight within 1 bf16 ulp of the
   reference or within 2^-29 (times the scale) of it, over random rows with ties and fixed edge rows;
 - the pack cache: prepack, then pack_cached, gives the same outputs as pack bit for bit; a mismatched call is refused;
@@ -38,7 +36,7 @@ from moe import moe8  # noqa: E402
 E, H, I, K = 16, 1024, 512, 4
 BF = torch.bfloat16
 REL = 0.01  # the relative bar against the float64 reference at HiFi4 (see the docstring)
-REL_HIFI2 = 0.016  # the same at HiFi2: its measured error (up to 1.40 %) with a margin
+REL_HIFI2 = 0.016  # the same at HiFi2 (see the docstring)
 FID = "hifi4"  # the fidelity of the checks against the reference, unless a test says otherwise
 
 
@@ -200,7 +198,7 @@ def test_rows(device):
 
 
 def test_hifi2(device):
-    """The ops at HiFi2, their default fidelity: REL_HIFI2, HiFi2's measured accuracy (see the module docstring)."""
+    """The ops at HiFi2, their default fidelity, against REL_HIFI2 (see the module docstring)."""
     decode_case(device, "hifi2", REL_HIFI2)
     gu, dn = experts(7)
     P = moe8.pack(device, gu, dn)

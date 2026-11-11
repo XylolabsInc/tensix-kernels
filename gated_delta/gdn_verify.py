@@ -303,7 +303,7 @@ def _fold_plan(x, conv, plan, H, HV, kt, vt, R, cols, ssm, tiles, fmt, rbuf, out
     ws = stage + vt * tile_bytes(out_dtype)
     total = ws + ncmax * tx * (2 if win else 1)
     tiles["rbuf"] = -(-total // tile_bytes(ttnn.float32))
-    # GDN_FOLD_SKIP (a timing test only, wrong outputs): 1 no shift or window, 2 no packing, 4 no conv ops, 8 no gather
+    # GDN_FOLD_SKIP (diagnostic only, wrong outputs): 1 no shift or window, 2 no packing, 4 no conv ops, 8 no gather
     skip = f"#define GDN_FOLD_SKIP {FOLD_SKIP}\n" if FOLD_SKIP else ""
     return {
         "state": state,

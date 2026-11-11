@@ -7,10 +7,7 @@
 Random codes in -7..7 and bf16 group scales (G = 32); x with a few outlier channels. Reference: x rounded to bf16 times
 q * s in float32 (the device's weight exactly). Bars, relative Frobenius error and PCC above 0.9999:
 - the matmul at HiFi4: below 1 %;
-- the matmul at HiFi2 (its default fidelity): below 1 % as well, its measured error being 0.84 to 0.96 % on these
-  cases. HiFi2 makes two of the matrix unit's four multiply passes over the operands' mantissas, so its products leave
-  out low-order bits that HiFi4 keeps (here also in the group-scale stage, which multiplies fp32 partial sums): a
-  property of the fidelity, the same on any device;
+- the matmul at HiFi2 (its default fidelity): below 1 % as well;
 - the dequantized bfloat8_b weight: below 2 % (its block-float rounding).
 One loader against two (the same chunks in the same order): bit for bit.
 """

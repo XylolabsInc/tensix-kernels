@@ -71,7 +71,7 @@ CB = {
     "h": 31,
 }
 L1_BUDGET = 1_400_000  # circular-buffer budget per core, in bytes
-KERNEL_CONFIG_RING = None  # the device's default kernel config ring in bytes: set it for your build to use worker_l1_kw
+KERNEL_CONFIG_RING = None  # bytes, for worker_l1_kw (None: unset)
 # Compute the WY inverse per 32 x 32 diagonal block (1) or over the whole chunk (0).
 # Both forms evaluate the same inverse; block inversion reduces matrix work.
 BLOCK_INV = os.environ.get("GDN_BLOCK_INV", "1") != "0"
@@ -82,7 +82,6 @@ OPT = os.environ.get("GDN_OPT", "O2")  # the compute kernel's KernelBuildOptLeve
 # F32S updates an fp32 state in Dst without tf32 truncation. It does not apply to bf16 states.
 # GDN_SCAN_F32S=0 uses the FPU state-update path. With F32S, GDN_DN_INP32 selects fp32
 # softplus so that small positive decay steps are not rounded to zero by a low-precision tail.
-# A larger program may need a larger kernel config ring; see worker_l1_kw.
 F32S = int(os.environ.get("GDN_SCAN_F32S", "1"))
 assert F32S in (0, 1), "GDN_SCAN_F32S: 0 or 1"
 DN_INP32 = os.environ.get("GDN_DN_INP32", "1") != "0"
@@ -110,11 +109,8 @@ def _opt_level(name):
 def worker_l1_kw(less=None):
     """Return open_device keywords that reduce worker L1 by `less` bytes.
 
-    None reads GDN_WORKER_L1_LESS; zero returns {}. A program larger than the device's
-    kernel config ring fails at enqueue. A smaller worker L1 gives a larger ring.
-    The ring lies between KERNEL_CONFIG and the allocator's base, as computed by
-    program.cpp's get_ringbuffer_size. Use the same size for every device open in a process.
-    It needs KERNEL_CONFIG_RING, the device's default ring size in bytes.
+    None reads GDN_WORKER_L1_LESS; zero returns {}. Use the same size for every device open in a
+    process. It needs KERNEL_CONFIG_RING.
     """
     if less is None:
         less = int(os.environ.get("GDN_WORKER_L1_LESS", "0"))
@@ -502,8 +498,7 @@ def gated_delta_rule(
                 ],
                 cp,
                 compute_config(),
-                # O2 limits kernel text size to help fit the device's kernel config ring.
-                # Os can break the LLK's immediate-operand assembly.
+                # O2: Os can break the LLK's immediate-operand assembly.
                 _opt_level(OPT),
                 "#define INP_FLOAT32 1\n" if (f32s and DN_INP32) else "",
             ),

@@ -44,8 +44,8 @@ void kernel_main() {
     static_assert(K >= 1 && ROWS >= 1 && ROWS <= 32 && NREC >= 1, "head_pick_records");
     constexpr uint32_t PAGE = 2 * ROWS * K * 4;  // a record's bytes (the result tensor's page)
     // the records' stride in L1: a page rounded up to 64 bytes, so each record lands at its DRAM page's offset
-    // modulo 64 (a DRAM page starts 64-byte aligned where the DRAM alignment is 64, as on Blackhole; ttsim
-    // refuses a read whose source and destination differ there: k 4 with one row, a 32-byte page, did)
+    // modulo 64 (a DRAM page starts 64-byte aligned where the DRAM alignment is 64, as on Blackhole, and a NoC
+    // read needs its source and destination alike modulo 64)
     constexpr uint32_t STRIDE = (PAGE + 63) / 64 * 64;
     // DRAM reads land in L1 at the same offset modulo 64: the records a STRIDE apart from c_9's base (64-byte aligned,
     // as in head_pick_reader.cpp); the map's and the output's pages are 128 bytes at their CBs' bases.

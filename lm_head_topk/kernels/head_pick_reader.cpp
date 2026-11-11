@@ -40,8 +40,8 @@ void kernel_main() {
     static_assert(DT % CW == 0 && TOP >= 1 && TOP <= 32 && K >= 1, "head_pick");
     constexpr uint32_t PAGE = 2 * ROWS * K * 4;  // a record's bytes (the result tensor's page)
     // the records' stride in L1: a page rounded up to 64 bytes, so each record lands at its DRAM page's offset
-    // modulo 64 (a DRAM page starts 64-byte aligned where the DRAM alignment is 64, as on Blackhole; ttsim
-    // refuses a read whose source and destination differ there: k 4 with one row, a 32-byte page, did)
+    // modulo 64 (a DRAM page starts 64-byte aligned where the DRAM alignment is 64, as on Blackhole, and a NoC
+    // read needs its source and destination alike modulo 64)
     constexpr uint32_t STRIDE = (PAGE + 63) / 64 * 64;
     constexpr uint32_t BW = CW * 64;              // a block row's bytes (CW tiles' 32 bf16 columns)
     // DRAM reads land in L1 at the same offset modulo 64: the records a STRIDE apart from c_9's base, the blocks' rows a BW

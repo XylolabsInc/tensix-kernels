@@ -49,7 +49,7 @@ KERNELS = Path(__file__).resolve().parent / "kernels"
 BFP8_TILE = 1088
 NATIVE_TILES = {ttnn.bfloat8_b: BFP8_TILE, ttnn.bfloat4_b: 576, ttnn.bfloat16: 2048}
 
-# --- settings (module attributes: starting points chosen from measurements on one device; retune them per device) --
+# --- settings (module attributes: starting points; retune per device) ---
 
 # Bytes of L1 a core's circular buffers may take: None, the default: the device's largest free L1 span per bank at the
 # first plan, less L1_MARGIN; a number caps it. Plans are made for this budget and kept while the L1 free at a call
@@ -62,14 +62,13 @@ X_BUDGET = 600_000
 XS_DEPTH = 3
 # The fewest weight chunks per core the default chunk depth aims for, when x streams (decode): 0, the default, off.
 # With a value, KW is halved (to the next divisor of K's tiles) until a core has at least MIN_CHUNKS chunks or KW is
-# 4: more, smaller chunks overlap the compute with the reads better for weights with few K tiles. MIN_CHUNKS_SHAPES: a
-# set of (K, N) weight shapes the rule is limited to (None: every shape).
+# 4. MIN_CHUNKS_SHAPES: a set of (K, N) weight shapes the rule is limited to (None: every shape).
 MIN_CHUNKS = 0
 MIN_CHUNKS_SHAPES = None
 # 1 core per bank first for decode shapes (one tile row) with N at most NARROW_N (0, the default: off)
 NARROW_N = 0
 # The share of a split plan's weight chunks the reader RISC loads (0.5, the default: the alternation; 0.5 to 0.75,
-# kernels/split.h). The two RISCs read DRAM over different NoCs; where one reads faster, give the reader more.
+# kernels/split.h).
 SPLIT_SHARE = 0.5
 # a weight row's DRAM requests, at most REQ_TILES tiles each (0, the default: one request a row of the core's columns)
 REQ_TILES = 0

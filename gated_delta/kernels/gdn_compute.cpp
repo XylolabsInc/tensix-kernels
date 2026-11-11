@@ -43,9 +43,7 @@
 // Runtime args: heads on this core, chunks per head, q scale, L2 eps, the gated norm's eps and 1 / V,
 // then per head (GATES) -exp(A_log) and dt_bias (fp32 bits).
 
-// O2 limits kernel text size. A program larger than the device's kernel config ring
-// fails at enqueue; a smaller worker L1 gives a larger ring.
-// Os can break the LLK's immediate-operand assembly.
+// Built at O2: Os can break the LLK's immediate-operand assembly.
 #pragma GCC optimize("O2")
 
 #include <cstdint>

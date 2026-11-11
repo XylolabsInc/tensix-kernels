@@ -70,7 +70,7 @@ TB = 576  # a BFP4_b tile: 64 exponent bytes, 512 bytes of sign + 3-bit magnitud
 ACTS = {"silu": 0, "gelu_tanh": 1, "swiglu_oai": 2}
 OAI_ALPHA, OAI_LIMIT = 1.702, 7.0
 
-# --- settings (module attributes: starting points chosen from measurements on one device; retune them per device) --
+# --- settings (module attributes: starting points; retune per device) ---
 
 # decode gate_up's SFPU stages (activation, products, routing weight) on the valid rows only (one row of x: the top
 # half of the tiles, 2 SFPU iterations); False: whole tiles. The same values in row 0 either way.

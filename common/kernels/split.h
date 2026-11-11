@@ -2,9 +2,8 @@
 // Copyright 2026 Xylolabs
 //
 // split.h: which RISC loads a weight chunk when two loaders share a core's chunks (SPLIT): the reader RISC or the
-// writer RISC. The two data-movement RISCs use different NoCs, whose DRAM read rates can differ on a given device, so
-// the reader may take more than half of the chunks. The compile argument ARG is 0 (no split), 1 (the alternation: the
-// odd chunks are the writer's), or (P << 24) | MASK: a period of P chunks (3..24) and the positions in it the writer
+// writer RISC; the reader may take more than half of the chunks. The compile argument ARG is 0 (no split), 1 (the
+// alternation: the odd chunks are the writer's), or (P << 24) | MASK: a period of P chunks (3..24) and the positions in it the writer
 // loads (bit i: position i of every period, chunk g at position g % P). The host (split_arg in dense_reader/linear.py)
 // never gives the writer position 0 or two positions in a row, so chunk 0 is the reader's and a reader's chunk is
 // followed by at most one of the writer's: the reader's x groups of the streamed-x path hold at most two chunks, as with

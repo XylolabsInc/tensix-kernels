@@ -88,8 +88,7 @@
 // indices 4 and 6 for gdn_ops.h.
 // Runtime args: heads on this core, q scale, L2 eps, the gated norm's eps, 1 / V (fp32 bits).
 
-// O2 limits kernel text size. A program larger than the device's kernel config ring
-// fails at enqueue; a smaller worker L1 gives a larger ring.
+// Built at O2.
 #pragma GCC optimize("O2")
 
 #include <cstdint>

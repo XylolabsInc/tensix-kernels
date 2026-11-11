@@ -98,7 +98,7 @@ def test_device_pick(device):
 
 def test_small_records(device):
     """k 4: a record of one row is 32 bytes, so records sit 32 bytes apart in DRAM's pages but must land 64 bytes apart
-    in L1 where DRAM reads keep their offset modulo 64 (Blackhole; ttsim refuses the read otherwise)."""
+    in L1 where DRAM reads keep their offset modulo 64 (Blackhole's DRAM alignment)."""
     w = head(14)
     for rows in (1, 3):
         x, tx = x_rows(device, rows, 15 + rows)

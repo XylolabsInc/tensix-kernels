@@ -9,11 +9,8 @@ x rounded to bf16 times q * bf16(s) in float32 (the device's weight exactly); wi
 (t2.rotate), so the kernel's bf16 x' is part of its error. Bars (PCC above 0.9999 throughout; relative Frobenius
 error):
 - at HiFi4, every kernel and the rotation: below BAR (0.5 %);
-- at HiFi2 (the kernels' default fidelity): the one-token kernel below BAR_HIFI2_ONE (1.5 %; measured 0.78 to 1.26 %,
-  the most with the fused rotation), the multi-row kernel below BAR_HIFI2_ROWS (0.8 %; measured 0.69 %). HiFi2 makes
-  two of the matrix unit's four multiply passes over the operands' mantissas, so its products leave out low-order bits
-  that HiFi4 keeps; the one-token kernel feels it most, as its scale stage and fused rotation multiply fp32 partial
-  sums at the call's fidelity. A property of the fidelity, the same on any device.
+- at HiFi2 (the kernels' default fidelity): the one-token kernel below BAR_HIFI2_ONE (1.5 %), the multi-row kernel
+  below BAR_HIFI2_ROWS (0.8 %).
 Where two configurations must agree (the three weight formats, one loader against two, the fused Hadamard against the
 Hadamard op (both at HiFi4), an offset output against the plain one, the top-k records against the op's own output),
 the check is bit for bit.
@@ -31,7 +28,7 @@ from dense_reader import linear as dense_linear  # noqa: E402  (the top-k result
 from ternary_matmul import t2  # noqa: E402
 
 BAR = 0.005  # every check against the reference at HiFi4
-BAR_HIFI2_ONE, BAR_HIFI2_ROWS = 0.015, 0.008  # at HiFi2: the measured errors with a margin (see the docstring)
+BAR_HIFI2_ONE, BAR_HIFI2_ROWS = 0.015, 0.008  # at HiFi2 (see the docstring)
 FID = "hifi4"
 
 
@@ -164,7 +161,7 @@ def test_topk_and_offset_output(device):
 
 
 def test_hifi2(device):
-    """The kernels at HiFi2, their default fidelity, against HiFi2's measured accuracy (see the module docstring)."""
+    """The kernels at HiFi2, their default fidelity, against BAR_HIFI2_ONE and BAR_HIFI2_ROWS (see the module docstring)."""
     k, n, g = 1024, 1024, 128
     trits, scales = make_weight(n, k, g, 1)
     x = make_x(1, k, 2)
