@@ -12,7 +12,8 @@ A random bf16 head [vocab, dim] on a bfloat4_b device head (the dense reader's t
 - the device pick (head_pick.pick) against the host rescore on the same records, token for token, in bf16 and float32
   logits, also on a head whose rows repeat in pairs (exact ties: the lowest id must win) and on a padded head (valid=),
   its table also given as the valid rows only (a tied embedding of the real vocabulary);
-- the records-only pick (pick_records) with and without a token map against the host's argmax over the same records.
+- the records-only pick (pick_records) with and without a token map against the host's argmax over the same records;
+- both picks with k 4 at 1 and 3 rows, whose 32-byte records must land 64 bytes apart in L1.
 """
 
 import sys
@@ -93,6 +94,24 @@ def test_device_pick(device):
                     same(f"device pick rows {rows}: tokens against the bf16 host head", got, host_tokens(x, w))
             dev.deallocate()
             host.deallocate()
+
+
+def test_small_records(device):
+    """k 4: a record of one row is 32 bytes, so records sit 32 bytes apart in DRAM's pages but must land 64 bytes apart
+    in L1 where DRAM reads keep their offset modulo 64 (Blackhole; ttsim refuses the read otherwise)."""
+    w = head(14)
+    for rows in (1, 3):
+        x, tx = x_rows(device, rows, 15 + rows)
+        host = lmhead.DeviceHead(device, w, fmt="bfp4", chunks=CHUNKS, k=4)
+        dev = lmhead.DeviceHead(device, w, fmt="bfp4", chunks=CHUNKS, k=4, device_pick=True)
+        same(f"device pick, k 4, rows {rows}: tokens against the host rescore", dev(tx, rows), host(tx, rows))
+        plain = lmhead.DeviceHead(device, w, fmt="bfp4", chunks=CHUNKS, k=4, rescore=False)
+        vals, ids = plain.candidates(tx, rows)
+        picked = lmhead.DeviceHead(device, w, fmt="bfp4", chunks=CHUNKS, k=4, rescore=False, device_pick=True)
+        best = ids[torch.arange(rows), vals.argmax(dim=1)]
+        same(f"records pick, k 4, rows {rows}: rows against the host's argmax over the records", picked(tx, rows), best)
+        for h in (host, dev, plain, picked):
+            h.deallocate()
 
 
 def test_padded_head(device):

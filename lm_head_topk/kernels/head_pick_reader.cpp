@@ -39,9 +39,13 @@ void kernel_main() {
     constexpr auto x_args = TensorAccessorArgs<h_args.next_compile_time_args_offset()>();
     static_assert(DT % CW == 0 && TOP >= 1 && TOP <= 32 && K >= 1, "head_pick");
     constexpr uint32_t PAGE = 2 * ROWS * K * 4;  // a record's bytes (the result tensor's page)
+    // the records' stride in L1: a page rounded up to 64 bytes, so each record lands at its DRAM page's offset
+    // modulo 64 (a DRAM page starts 64-byte aligned where the DRAM alignment is 64, as on Blackhole; ttsim
+    // refuses a read whose source and destination differ there: k 4 with one row, a 32-byte page, did)
+    constexpr uint32_t STRIDE = (PAGE + 63) / 64 * 64;
     constexpr uint32_t BW = CW * 64;              // a block row's bytes (CW tiles' 32 bf16 columns)
-    // DRAM reads land in L1 at the same offset modulo 32: the records a PAGE apart from c_9's base, the blocks' rows a BW
-    // apart from c_1's. Both rest on the CB bases being 32-byte aligned (every CB size here is a multiple of 64 and the
+    // DRAM reads land in L1 at the same offset modulo 64: the records a STRIDE apart from c_9's base, the blocks' rows a BW
+    // apart from c_1's. Both rest on the CB bases being 64-byte aligned (every CB size here is a multiple of 64 and the
     // first CB's base is the allocator's aligned L1 base: assumed, as in the other kernels here).
     static_assert((PAGE & 31) == 0 && (BW & 31) == 0, "head_pick: 32-byte aligned records and blocks");
 
@@ -60,13 +64,13 @@ void kernel_main() {
     cb_reserve_back(cb_scr, 1);
     const uint32_t scr = get_write_ptr(cb_scr);
     for (uint32_t p = 0; p < NREC; ++p) {
-        noc_async_read_page(p, ra, scr + p * PAGE);
+        noc_async_read_page(p, ra, scr + p * STRIDE);
     }
     noc_async_read_barrier();
     uint32_t key[TOP], cid[TOP];
     uint32_t n = 0;  // candidates held, in decreasing key order
     for (uint32_t p = 0; p < NREC; ++p) {
-        volatile tt_l1_ptr uint32_t* w = reinterpret_cast<volatile tt_l1_ptr uint32_t*>(scr + p * PAGE);
+        volatile tt_l1_ptr uint32_t* w = reinterpret_cast<volatile tt_l1_ptr uint32_t*>(scr + p * STRIDE);
         for (uint32_t s = 0; s < K; ++s) {
             const uint32_t kk = w[r * K + s] & 0xFFFFu;
             const uint32_t id = w[ROWS * K + r * K + s];

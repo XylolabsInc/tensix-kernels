@@ -43,7 +43,11 @@ void kernel_main() {
     constexpr auto d_args = TensorAccessorArgs<o_args.next_compile_time_args_offset()>();
     static_assert(K >= 1 && ROWS >= 1 && ROWS <= 32 && NREC >= 1, "head_pick_records");
     constexpr uint32_t PAGE = 2 * ROWS * K * 4;  // a record's bytes (the result tensor's page)
-    // DRAM reads land in L1 at the same offset modulo 32: the records a PAGE apart from c_9's base (32-byte aligned,
+    // the records' stride in L1: a page rounded up to 64 bytes, so each record lands at its DRAM page's offset
+    // modulo 64 (a DRAM page starts 64-byte aligned where the DRAM alignment is 64, as on Blackhole; ttsim
+    // refuses a read whose source and destination differ there: k 4 with one row, a 32-byte page, did)
+    constexpr uint32_t STRIDE = (PAGE + 63) / 64 * 64;
+    // DRAM reads land in L1 at the same offset modulo 64: the records a STRIDE apart from c_9's base (64-byte aligned,
     // as in head_pick_reader.cpp); the map's and the output's pages are 128 bytes at their CBs' bases.
     static_assert((PAGE & 31) == 0, "head_pick_records: 32-byte aligned records");
 
@@ -61,7 +65,7 @@ void kernel_main() {
     cb_reserve_back(cb_scr, 1);
     const uint32_t scr = get_write_ptr(cb_scr);
     for (uint32_t p = 0; p < NREC; ++p) {
-        noc_async_read_page(p, ra, scr + p * PAGE);
+        noc_async_read_page(p, ra, scr + p * STRIDE);
     }
     noc_async_read_barrier();
 
@@ -73,7 +77,7 @@ void kernel_main() {
         // 2. row r's best: the first slot of the largest rank
         uint32_t best = 0xFFFFFFFFu, best_rank = 0, n = 0;
         for (uint32_t p = 0; p < NREC; ++p) {
-            volatile tt_l1_ptr uint32_t* w = reinterpret_cast<volatile tt_l1_ptr uint32_t*>(scr + p * PAGE);
+            volatile tt_l1_ptr uint32_t* w = reinterpret_cast<volatile tt_l1_ptr uint32_t*>(scr + p * STRIDE);
             for (uint32_t s = 0; s < K; ++s) {
                 const uint32_t kk = w[r * K + s] & 0xFFFFu;
                 const uint32_t id = w[ROWS * K + r * K + s];

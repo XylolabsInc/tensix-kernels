@@ -163,7 +163,7 @@ def pick(records, x, rows_t, nrows, k, top=16, logits="bf16", out=None, valid=No
             cb(2, bf, 2048, dt),  # the candidates' tiles
             cb(3, ttnn.uint32, -(-(4 * (1 + 2 * top)) // 64) * 64, 1),  # the candidates, to the writer
             cb(4, ttnn.uint32, 128, 1),  # the output page's staging
-            cb(9, ttnn.uint32, -(-(nrec * page) // 64) * 64, 1),  # the records
+            cb(9, ttnn.uint32, nrec * (-(-page // 64) * 64), 1),  # the records
             cb(16, bf if rnd else ttnn.float32, 2048 if rnd else 4096, 1),  # the logits' tile
         ]
         reader_ct = [dt, cw, top, k, nrows, nrec, vocab]
@@ -298,7 +298,7 @@ def pick_records(records, nrows, k, vocab, tmap=None, out=None, ids_out=None):
                 format_descriptors=[ttnn.CBFormatDescriptor(buffer_index=index, data_format=u32, page_size=page_size)],
             )
 
-        size = -(-(nrec * page) // 64) * 64
+        size = nrec * (-(-page // 64) * 64)
         cbs = [cb(4, 128, nrows), cb(5, 128, 1), cb(9, size, 1)]  # the output pages, a map page, the records
         ct = [k, nrows, nrec, vocab, int(mapped), int(ids_out is not None)]
         for t in (records, mt, out, dt_):
