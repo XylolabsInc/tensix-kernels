@@ -18,12 +18,11 @@
 
 </div>
 
-Device kernels for LLM decode on Tenstorrent Tensix devices, written against stock tt-metal / ttnn and launched from
-Python through `ttnn.generic_op` (the kernels are compiled by tt-metal's JIT at the first call; nothing in tt-metal is
-rebuilt or patched). They target the parts of decode that are bound by reading weights from DRAM: each weight is read
-once, in large contiguous requests, by the cores next to its DRAM bank, with the output stage fused in.
-`gated_delta/` adds the recurrent layers of hybrid models (Gated DeltaNet, Kimi Delta Attention, Mamba-2), for
-prefill and decode.
+Device kernels for LLM decode on Tenstorrent Tensix devices. They use stock tt-metal and ttnn: Python launches them
+through `ttnn.generic_op`, tt-metal's JIT compiles them at the first call, and nothing in tt-metal is rebuilt or
+patched. They target the DRAM-bound parts of decode: each weight is read once, in large contiguous requests, by the
+cores next to its DRAM bank, with the output stage fused in. `gated_delta/` adds the recurrent layers of hybrid models
+(Gated DeltaNet, Kimi Delta Attention, Mamba-2) for prefill and decode.
 
 | Package | What |
 |---|---|
@@ -42,9 +41,10 @@ prefill and decode.
 - Python 3.10 or 3.12 with `torch`, and `pip install ttnn==0.81.1` (ttnn 0.81.1 ships wheels for Linux x86_64 with
   glibc 2.34 or later). The compute kernels use the compute API of tt-metal v0.81 (`compute_kernel_hw_startup`,
   `matmul_block_init`), which older releases name differently.
-- A Tenstorrent card, or with no card [ttsim](https://github.com/tenstorrent/ttsim), Tenstorrent's simulator (tested
-  with v1.15.1), and SFPI 7.89.0, tt-metal v0.81.1's version: the wheel does not include it, and
-  `python -m ttnn.download_sfpi` does not work in 0.81.1, so it is unpacked into ttnn's `runtime` directory by hand:
+- A Tenstorrent card, or [ttsim](https://github.com/tenstorrent/ttsim), Tenstorrent's simulator (tested with
+  v1.15.1).
+- SFPI 7.89.0, the version tt-metal v0.81.1 uses. The wheel does not include it and `python -m ttnn.download_sfpi`
+  does not work in 0.81.1, so unpack it into ttnn's `runtime` directory by hand:
 
 ```
 curl -LO https://github.com/tenstorrent/ttsim/releases/download/v1.15.1/libttsim_bh.so
@@ -57,7 +57,7 @@ tar -xJf sfpi_7.89.0_x86_64_debian.txz -C "$(python -c 'import os, ttnn; print(o
 `soc_descriptor.yaml` must sit beside the simulator library for tt-metal older than v0.83.
 
 [RUNNING.md](RUNNING.md) gives this setup step by step (`scripts/setup_ttsim.sh`) and runs every check
-(`scripts/run_checks.sh`). Both were tested from scratch with ttsim v1.16.0, Python 3.12.3 and ttnn 0.81.1 and torch
+(`scripts/run_checks.sh`). Both were tested from scratch with ttsim v1.16.0, Python 3.12.3, ttnn 0.81.1 and torch
 2.15.0 from PyPI, setting only `TT_METAL_SIMULATOR`, `TT_METAL_SLOW_DISPATCH_MODE=1` (ttsim runs slow dispatch only)
 and cache paths; the checks also passed with ttsim v1.15.1. Nothing was tested on hardware.
 
