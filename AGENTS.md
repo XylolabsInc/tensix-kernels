@@ -37,8 +37,8 @@ scripts/run_checks.sh             # 5 tests and 5 examples, ending "run_checks.s
 gated_delta/run_tests.sh          # gated_delta's 10 checks and 4 examples, ending "run_tests: 14 passed, 0 failed, 0 skipped"
 ```
 
-- One package: `python -s <package>/tests/test_<name>.py` (dense_reader 9, lm_head_topk 5, moe 7, int4 4,
-  ternary_matmul 6), or `pytest -s -p no:cacheprovider <tree>` for all five (31 passed); one `gated_delta` check:
+- One package: `python -s <package>/tests/test_<name>.py` (dense_reader 9, lm_head_topk 6, moe 7, int4 4,
+  ternary_matmul 6), or `pytest -s -p no:cacheprovider <tree>` for all five (32 passed); one `gated_delta` check:
   `python gated_delta/tests/check_<name>.py`.
 - Run from outside the tree: tt-metal writes `generated/` in the working directory. Unset `PYTHONPATH` and
   `LD_LIBRARY_PATH` if they point at another torch.

@@ -63,7 +63,7 @@ It runs each package's test, then each example, one Python process each on devic
 current directory; `WORKDIR=...` runs the processes elsewhere. `RUN="..."` puts a command in front of each process (a
 job wrapper, for example). Each test also runs on its own (`python -s <package>/tests/test_<name>.py [test names]`)
 and under pytest: `python -m pip install pytest`, then `pytest -s -p no:cacheprovider <path to the tree>` (the root
-`conftest.py` opens one device for the session) printed `31 passed` in the same environment.
+`conftest.py` opens one device for the session) printed `32 passed` in the same environment.
 
 | Check | What it compares |
 |---|---|
@@ -87,7 +87,7 @@ printed, apart from each check's own lines:
 ### dense_reader/tests/test_dense_reader.py
 9 passed, 0 failed
 ### lm_head_topk/tests/test_lm_head.py
-5 passed, 0 failed
+6 passed, 0 failed
 ### moe/tests/test_moe.py
 7 passed, 0 failed
 ### int4/tests/test_int4.py
