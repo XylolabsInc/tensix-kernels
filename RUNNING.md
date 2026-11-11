@@ -122,7 +122,7 @@ kind of environment as above; its own run used these versions:
 |---|---|
 | Python | 3.12 |
 | `ttnn` | 0.81.1, the PyPI wheel, with `torch` from PyPI |
-| Simulator | ttsim v1.15.1, `soc_descriptor.yaml` beside the library |
+| Simulator | ttsim v1.15.1 and v1.16.0, `soc_descriptor.yaml` beside the library |
 | SFPI | 7.89.0, unpacked into `ttnn/runtime` |
 | `TT_METAL_MODELS` | a plain tt-metal v0.81.1 checkout, for `check_pconv` and `check_pgates` (skipped without it) |
 | Build | none: the kernels are compiled by tt-metal's JIT at their first call |
@@ -139,7 +139,8 @@ rollback through `gdn_commit`), `python examples/conv.py` (an 8-token chunk, the
 `python examples/mamba2_mixer.py` (a 16-token prompt and 2 decode steps). Each checks itself against float64 and
 exits 1 on a miss; `gated_delta/README.md` shows their printed numbers.
 
-`run_tests.sh` printed, on ttsim's default grid and on a reduced compute grid alike:
+`run_tests.sh` printed, on ttsim v1.15.1's default grid and on a reduced compute grid alike, and again in the
+environment `scripts/setup_ttsim.sh` builds (ttsim v1.16.0, `. DIR/env.sh`, `TT_METAL_MODELS` set):
 
 ```
 pass  check
