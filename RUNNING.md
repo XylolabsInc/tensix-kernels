@@ -1,8 +1,8 @@
 # Running the checks
 
-How to install what the packages need and run every package's correctness test and example, without a Tenstorrent
-card, on ttsim. Every step below was run from scratch, in this order, on a Linux x86_64 host (glibc 2.39) with
-nothing of Tenstorrent's installed beforehand, and passed. Nothing here was tested on hardware.
+How to install what the packages need and run every package's correctness test and example on ttsim, without a
+Tenstorrent card. These steps were run from scratch, in this order, on a Linux x86_64 host with nothing of
+Tenstorrent's installed beforehand. Nothing here was tested on hardware.
 
 ## Versions
 
@@ -78,39 +78,7 @@ and under pytest: `python -m pip install pytest`, then `pytest -s -p no:cachepro
 | `examples/int4_example.py` | one token through the int4 matmul against torch |
 | `examples/ternary_matmul_example.py` | one token through the ternary matmul against torch |
 
-## Results
-
-With the steps above (ttsim v1.16.0, its default 11 x 10 worker grid and 8 DRAM banks), `scripts/run_checks.sh`
-printed, apart from each check's own lines:
-
-```
-### dense_reader/tests/test_dense_reader.py
-9 passed, 0 failed
-### lm_head_topk/tests/test_lm_head.py
-6 passed, 0 failed
-### moe/tests/test_moe.py
-7 passed, 0 failed
-### int4/tests/test_int4.py
-4 passed, 0 failed
-### ternary_matmul/tests/test_ternary.py
-6 passed, 0 failed
-### examples/dense_reader_example.py
-dense_reader example: y = x @ w for one token, relative error 0.169 % against torch
-### examples/lm_head_topk_example.py
-lm_head_topk example: tokens [3204, 2419], torch's bf16 head [3204, 2419]
-### examples/moe_example.py
-moe example: experts [27, 17, 30, 3], relative error 0.249 % against the float64 reference
-### examples/int4_example.py
-int4 example: y = x @ (q * s).T for one token, relative error 0.231 % against torch
-### examples/ternary_matmul_example.py
-ternary_matmul example: one token, relative error 0.230 % against torch
-run_checks.sh: all passed
-```
-
-The same `scripts/run_checks.sh` also passed, with the same output, on ttsim v1.15.1 (Python 3.12.11, ttnn 0.81.1,
-torch 2.15.0's CPU build, SFPI 7.89.0), on the default grid and on a reduced worker grid. The bars behind each test's
-lines are in its docstring. The examples' bars: a relative error below 1 % (0.5 % for
-the ternary matmul), the tokens equal, the experts equal to torch's top 4.
+The run ends with `run_checks.sh: all passed`; each test's docstring gives its bars.
 
 ## gated_delta
 
@@ -137,30 +105,6 @@ The examples also run on their own (from `gated_delta/`): `python examples/gated
 scan, then decode steps), `python examples/verify.py` (4 rows in one verify call, the state slots and a 2-row
 rollback through `gdn_commit`), `python examples/conv.py` (an 8-token chunk, then one-token steps) and
 `python examples/mamba2_mixer.py` (a 16-token prompt and 2 decode steps). Each checks itself against float64 and
-exits 1 on a miss; `gated_delta/README.md` shows their printed numbers.
+exits 1 on a miss.
 
-`run_tests.sh` printed, on ttsim v1.15.1's default grid and on a reduced compute grid alike, and again in the
-environment `scripts/setup_ttsim.sh` builds (ttsim v1.16.0, `. DIR/env.sh`, `TT_METAL_MODELS` set):
-
-```
-pass  check
-pass  check_rows
-pass  check_decode
-pass  check_conv
-pass  check_ssm
-pass  check_kda
-pass  check_commit
-pass  check_mixer
-pass  check_pconv
-pass  check_pgates
-pass  example
-pass  example_verify
-pass  example_conv
-pass  example_mixer
-run_tests: 14 passed, 0 failed, 0 skipped
-```
-
-## On a card
-
-Not tested on hardware. With a Tenstorrent card the simulator steps (the ttsim library, the soc descriptor,
-`TT_METAL_SIMULATOR`, `TT_METAL_SLOW_DISPATCH_MODE`) do not apply; nothing here was checked on a card.
+The run ends with `run_tests: 14 passed, 0 failed, 0 skipped` (with `TT_METAL_MODELS` set).

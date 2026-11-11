@@ -18,21 +18,18 @@
 
 </div>
 
-Device kernels for LLM decode on Tenstorrent Tensix devices. They use stock tt-metal and ttnn: Python launches them
-through `ttnn.generic_op`, tt-metal's JIT compiles them at the first call, and nothing in tt-metal is rebuilt or
-patched. They target the DRAM-bound parts of decode: each weight is read once, in large contiguous requests, by the
-cores next to its DRAM bank, with the output stage fused in. `gated_delta/` adds the recurrent layers of hybrid models
-(Gated DeltaNet, Kimi Delta Attention, Mamba-2) for prefill and decode.
+Device kernels for LLM decode on Tenstorrent Tensix devices, launched from Python through `ttnn.generic_op` on stock
+tt-metal and ttnn. tt-metal's JIT compiles them at the first call; nothing in tt-metal is rebuilt or patched.
 
 | Package | What |
 |---|---|
-| [`dense_reader/`](dense_reader/README.md) | A weight-streaming matmul for decode: `bfloat8_b`, `bfloat4_b` or `bfloat16` weights DRAM width-sharded, x streamed with the weight chunks, split loaders on both data-movement RISCs, fused output stages (per-column scales, SwiGLU / GeGLU, a residual add, fp32 output), top-k records kept by the writers, and block lists (one call over several separately sharded weights) |
-| [`lm_head_topk/`](lm_head_topk/README.md) | An LM head that returns token ids: the dense reader's top-k records over vocabulary blocks, then an exact bf16 rescore and pick on the host or on the device, and a records-only pick for draft heads |
-| [`moe/`](moe/README.md) | A mixture-of-experts layer that reads only the chosen experts: routing on the device (softmax or sigmoid, top-k), gate/up and down for one token and for up to 32 rows (each expert of the rows' union read once), `bfloat4_b` expert packing |
+| [`dense_reader/`](dense_reader/README.md) | A matmul for decode with `bfloat8_b`, `bfloat4_b` or `bfloat16` weights and fused output stages (per-column scales, SwiGLU / GeGLU, a residual add, fp32 output), top-k records, and block lists (one call over several weights) |
+| [`lm_head_topk/`](lm_head_topk/README.md) | An LM head that returns token ids: top-k candidates over vocabulary blocks, then an exact bf16 rescore and pick on the host or on the device, and a records-only pick for draft heads |
+| [`moe/`](moe/README.md) | A mixture-of-experts layer that reads only the chosen experts: routing on the device (softmax or sigmoid, top-k), gate/up and down for one token and for up to 32 rows, `bfloat4_b` expert packing |
 | [`int4/`](int4/README.md) | An int4-weight matmul for one token with a scale per 32 inputs, and the dequantize to `bfloat8_b` for many rows |
-| [`ternary_matmul/`](ternary_matmul/README.md) | A ternary-weight matmul (BFP2_b tiles) with group scales, an optional fused block Hadamard rotation, for one token and for many rows |
+| [`ternary_matmul/`](ternary_matmul/README.md) | A ternary-weight matmul (BFP2_b tiles) with group scales and an optional fused block Hadamard rotation, for one token and for many rows |
 | [`gated_delta/`](gated_delta/README.md) | The linear-attention layers of hybrid models: the gated delta rule (Gated DeltaNet), Kimi Delta Attention and the Mamba-2 state update, as a chunked prefill, a recurrent step of 1 to 32 rows a call with state slots for speculative verify, the causal conv with its rolling state, and a whole Mamba-2 mixer |
-| `common/` | Shared pieces: the kernel source loader, DRAM bank and core placement helpers, the compute helpers (`kernels/dense_ops.h`), the split loaders' chunk pattern (`kernels/split.h`), the test runner |
+| `common/` | Shared pieces: the kernel source loader, device helpers, compute helpers (`kernels/dense_ops.h`, `kernels/split.h`) and the test runner |
 | `examples/` | One small runnable example per package: build inputs, call the public API, compare with torch |
 | `scripts/` | `setup_ttsim.sh` (the install for running on ttsim) and `run_checks.sh` (every test and example); see [RUNNING.md](RUNNING.md) |
 
@@ -57,26 +54,9 @@ tar -xJf sfpi_7.89.0_x86_64_debian.txz -C "$(python -c 'import os, ttnn; print(o
 `soc_descriptor.yaml` must sit beside the simulator library for tt-metal older than v0.83.
 
 [RUNNING.md](RUNNING.md) gives this setup step by step (`scripts/setup_ttsim.sh`) and runs every check
-(`scripts/run_checks.sh`). Both were tested from scratch with ttsim v1.16.0, Python 3.12.3, ttnn 0.81.1 and torch
-2.15.0 from PyPI, setting only `TT_METAL_SIMULATOR`, `TT_METAL_SLOW_DISPATCH_MODE=1` (ttsim runs slow dispatch only)
-and cache paths; the checks also passed with ttsim v1.15.1. Nothing was tested on hardware.
-
-**Not documented kernel API.** The kernels also use these tt-metal internals, which may move between releases (all
-validated on tt-metal v0.81.x):
-
-- `_llk_unpack_reconfig_data_format_srca_impl_` with `get_local_cb_interface(get_operand_id(cb)).fifo_page_size`,
-  `p_dim_stride_target` and `DataFormat::Bfp2_b` (the BFP2_b srcA switch of `ternary_matmul/kernels/t2_compute.cpp`
-  and `t2m_compute.cpp`);
-- `MEM_ZEROS_BASE` and `MEM_ZEROS_SIZE` (the device memory map's zero area; `lm_head_topk`, `moe` and
-  `ternary_matmul` readers and writers);
-- the `SFPU_UNARY_CALL` and `SFPU_BINARY_CALL` macros with `ckernel::sfpu::calculate_*` functions
-  (`calculate_silu`, `calculate_sfpu_binary_mul`) and `_sfpu_sigmoid_` in the row helpers and SFPU functions of
-  `common/kernels/dense_ops.h`.
-
-**Defaults.** The DRAM bank count, the worker grid and the L1 the circular buffers may use come from the device
-(`common.device.MAX_BANKS` caps the banks weights are sharded over; the `L1_BUDGET` attributes cap the L1). The other
-defaults, such as the dense reader's `CONFIGS` trying 2 cores a bank first or the MoE ops' `LOADERS = 2`, are starting
-points chosen from measurements on one device; retune them per device.
+(`scripts/run_checks.sh`), tested from scratch with ttsim v1.16.0, Python 3.12.3, ttnn 0.81.1 and torch 2.15.0 from
+PyPI. Nothing was tested on hardware. The kernels also use a few tt-metal internals beyond the documented kernel API,
+validated on tt-metal v0.81.x and listed in [AGENTS.md](AGENTS.md).
 
 ## Use
 
@@ -91,7 +71,7 @@ x = ttnn.from_torch(torch.randn(1, 1, 1, 2048, dtype=torch.bfloat16), layout=ttn
 y = linear.matmul(x, w, None)                                                     # [1, 1, 1, 4096] bf16
 ```
 
-Each package's README gives its API, its limits and assumptions, and what it leaves out.
+Each package's README gives its API, the formats it takes and its test.
 
 ## Tests
 
@@ -109,19 +89,8 @@ scripts/run_checks.sh             # every test, then every example (RUNNING.md)
 gated_delta/run_tests.sh          # gated_delta's checks and its four examples (gated_delta/README.md)
 ```
 
-They were run on ttsim with tt-metal / ttnn 0.81.1, on the default 11 x 10 worker grid and on a reduced worker grid,
-both with 8 DRAM banks. The bars are in each test's docstring: bit for bit where two configurations of an op must agree
-(split loaders, block lists, top-k records against the op's own output, the device pick against the host's), relative
-error and PCC against a float64 reference otherwise.
-
-## Related work
-
-- tt-metal's own gpt_oss fused decode (`models/demos/gpt_oss/tt/fused_decode` in v0.81.1) is parallel work with the same
-  ideas: a streamed linear, MoE layers that read only the routed experts, the router's top-k in the writer, and a
-  streamed LM head with a top-k per writer and a terminal pick.
-- tt-metal's DRAM-sharded matmul and its tech report "Saturating DRAM bandwidth"
-  (`tech_reports/Saturating_DRAM_bandwidth/Saturating_DRAM_bandwidth.md`) describe the reader next to each DRAM bank
-  that the dense reader builds on.
+They were run on ttsim with tt-metal / ttnn 0.81.1. Each test's docstring gives its bars: bit for bit where two
+configurations of an op must agree, relative error and PCC against a float64 reference otherwise.
 
 ## License
 

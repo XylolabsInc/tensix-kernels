@@ -7,14 +7,14 @@ Instructions for AI coding agents (Codex, Claude Code and others) working in thi
 
 Device kernels for LLM inference on Tenstorrent Tensix NPUs. They are written against stock tt-metal / ttnn 0.81.1,
 launched from Python through `ttnn.generic_op`, and compiled by tt-metal's JIT at their first call; nothing in
-tt-metal is rebuilt or patched. The README covers each package; each package's README gives its API, limits and
-what it leaves out.
+tt-metal is rebuilt or patched. The README covers each package; each package's README gives its API, formats and
+test.
 
 ## Layout
 
 | Path | Content |
 |---|---|
-| `common/` | `source.py` (kernel loader, header inlining), `device.py` (banks, sharding, placement, read VCs, the split pattern), `testing.py`, `kernels/dense_ops.h`, `kernels/split.h` |
+| `common/` | `source.py` (kernel loader, header inlining), `device.py` (device helpers), `testing.py`, `kernels/dense_ops.h`, `kernels/split.h` |
 | `dense_reader/` | `linear.py`: `matmul`, `linear`, `native_weight`, top-k records, block lists |
 | `lm_head_topk/` | `lmhead.DeviceHead`, `head_pick` |
 | `moe/` | `moe8`: `pack`, `pack_cached`, `route`, `gate_up`, `down` and the `*_rows` forms |
@@ -43,9 +43,8 @@ gated_delta/run_tests.sh          # gated_delta's 10 checks and 4 examples, endi
 - Run from outside the tree: tt-metal writes `generated/` in the working directory. Unset `PYTHONPATH` and
   `LD_LIBRARY_PATH` if they point at another torch.
 - On the simulator each check takes from under a minute to several minutes. A change to a kernel or to its Python
-  launcher runs that package's checks and example before it is committed, on ttsim's default worker grid and on a
-  reduced one. Before a release, run everything on both grids, and `gated_delta/run_tests.sh` with `TT_METAL_MODELS`
-  set (a tt-metal checkout whose `models/` imports), so that `check_pconv` and `check_pgates` run instead of being
+  launcher runs that package's checks and example on ttsim before it is committed. Before a release, run everything,
+  and `gated_delta/run_tests.sh` with `TT_METAL_MODELS` set (a tt-metal checkout whose `models/` imports), so that `check_pconv` and `check_pgates` run instead of being
   skipped.
 
 ## Rules for every package
@@ -53,30 +52,29 @@ gated_delta/run_tests.sh          # gated_delta's 10 checks and 4 examples, endi
 - **Never widen a bar or drop a comparison to make a change pass**, and never model the simulator's rounding in a
   reference. A change that moves a bit-for-bit pair apart is a bug until explained.
 - **Stock tt-metal only.** No patched tt-metal, and no API or tensor format that exists only outside upstream. The
-  internals used beyond the documented kernel API are listed in the README ("Not documented kernel API") and in
-  `gated_delta/README.md` ("Requirements"), validated on tt-metal v0.81.x; re-check them on any version bump, and a
-  new one needs its line there.
+  internals used beyond the documented kernel API are listed under "tt-metal internals" below, validated on tt-metal
+  v0.81.x; re-check them on any version bump, and a new one needs its line there.
 - **Origins and headers.** Nothing is copied from tt-metal or any other code base. Every source file starts with
   SPDX `Apache-2.0` and Xylolabs' copyright. A file whose structure follows a tt-metal file keeps that file's
   Tenstorrent SPDX lines verbatim above ours, says what was modified and from which tt-metal v0.81.1 path, and is
   named in `NOTICE` and in the `ORIGINS.md` that covers it. `NOTICE` keeps tt-metal's attribution block.
 - **Nothing device-specific is fixed.** DRAM bank count, worker grid and L1 come from the device. The other defaults
-  (loader counts, cores per bank) are starting points measured on one device, to be retuned per device; never present
-  them as tuned for a named board.
+  (loader counts, cores per bank) are plain settings; the docs do not say how they were chosen.
 - **Correctness only.** No timing claims, and no device or board names, speeds, bandwidth, clocks, power or
   temperatures in code or docs. Tests and docs say what was checked against what.
+- **User docs only.** The READMEs say what a package does, its API, formats, limits and test, and how to install and
+  run it. No design rationale, tuning or performance notes, and no measured numbers.
 - **Seed every random tensor.**
 - **Public material only.** Use public sources (tt-metal, ttnn, ttsim, Tenstorrent's documentation) and nothing you
   can't publish under Apache-2.0.
 
 ## dense_reader, lm_head_topk, moe, int4, ternary_matmul
 
-Bars (do not change without a measured reason):
+Bars (do not change without a reason):
 
 - References are float64: x rounded to bf16 times the weight's own device values.
 - HiFi4 cases: 1 % relative error with PCC > 0.9999 (ternary_matmul 0.5 %; the dense fp32 output 0.1 %).
-- HiFi2, the ops' default: its measured error plus a margin, stated as HiFi2's accuracy (moe 1.6 %, ternary_matmul
-  1.5 % and 0.8 %, int4 and dense_reader 1 %). HiFi2 does 2 of the matrix unit's 4 multiply passes.
+- HiFi2, the ops' default: moe 1.6 %, ternary_matmul 1.5 % and 0.8 %, int4 and dense_reader 1 %.
 - Bit for bit: split shares and one against two loaders, block lists against one call per block, top-k records
   against the op's own output, the device pick against the host rescore, the pack cache against a fresh pack.
 
@@ -120,6 +118,21 @@ valid):
 - Gates: raw a and b at element columns `a_col + hv` and `b_col + hv` of their tensors (g and β computed in the kernel
   from `raw_gates = (a_neg, dt_bias)`), or g and β directly without `raw_gates`.
 - Shapes: head dims and channel counts are multiples of 32, and value heads a multiple of key heads.
+
+## tt-metal internals
+
+Used beyond the documented kernel API, validated on tt-metal v0.81.x:
+
+- `_llk_unpack_reconfig_data_format_srca_impl_` with `get_local_cb_interface(get_operand_id(cb)).fifo_page_size`,
+  `p_dim_stride_target` and `DataFormat::Bfp2_b` (the BFP2_b srcA switch of `ternary_matmul/kernels/t2_compute.cpp`
+  and `t2m_compute.cpp`);
+- `MEM_ZEROS_BASE` and `MEM_ZEROS_SIZE` (`lm_head_topk`, `moe` and `ternary_matmul` readers and writers);
+- the `SFPU_UNARY_CALL` and `SFPU_BINARY_CALL` macros with `ckernel::sfpu::calculate_*` functions
+  (`calculate_silu`, `calculate_sfpu_binary_mul`) and `_sfpu_sigmoid_` in `common/kernels/dense_ops.h`;
+- in `gated_delta/`: `_llk_math_eltwise_unary_sfpu_params_` and `_llk_math_eltwise_binary_sfpu_params_` (the
+  partial-tile SFPU helpers in `kernels/gdn_compat.h`), `ckernel::sfpu::calculate_softplus`, `calculate_sigmoid`,
+  `calculate_silu`, `calculate_sfpu_binary`, `calculate_sfpu_binary_mul`, `calculate_rsqrt` and `calculate_clamp`,
+  `TTI_STALLWAIT`, and `MEM_ZEROS_BASE`.
 
 ## Style
 

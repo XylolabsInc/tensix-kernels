@@ -29,21 +29,8 @@ stock upstream tt-metal / ttnn and launched through `ttnn.generic_op`. They cove
 - The tests run on ttsim, Tenstorrent's simulator, or on a device. `check_pconv.py`, `check_pgates.py` and
   `check.py --native` also run upstream's stock path for comparison. They need a tt-metal checkout's `models/`
   importable: set `TT_METAL_MODELS` (or `TT_METAL_HOME`) to the checkout, or put it on `PYTHONPATH`.
-- Besides the documented compute API, the compute kernels call tt-llk internals, validated on v0.81.x and not a
-  stable API: `_llk_math_eltwise_unary_sfpu_params_` and `_llk_math_eltwise_binary_sfpu_params_` (the partial-tile
-  SFPU helpers in `kernels/gdn_compat.h`), `ckernel::sfpu::calculate_softplus`, `calculate_sigmoid`,
-  `calculate_silu`, `calculate_sfpu_binary`, `calculate_sfpu_binary_mul`, `calculate_rsqrt` and `calculate_clamp`,
-  `TTI_STALLWAIT`, and `MEM_ZEROS_BASE`.
-
-## Parameters of the hardware
-
-Nothing is fixed to one device:
-- The compute grid comes from `device.compute_with_storage_grid_size()`, and work is spread over it.
-- Tensors are interleaved over the device's DRAM banks.
+- The compute kernels also call a few tt-llk internals, validated on v0.81.x and listed in `AGENTS.md`.
 - `gdn_scan.L1_BUDGET` caps the circular buffers a core may use; set it to your device's worker L1.
-- A program larger than the device's kernel config ring fails at enqueue. With `gdn_scan.KERNEL_CONFIG_RING` set to the
-  device's default ring size, `gdn_scan.worker_l1_kw(less)` gives
-  `open_device` arguments for a smaller worker L1, which makes the ring larger.
 
 ## Tests
 
@@ -96,72 +83,17 @@ TT_METAL_MODELS=/path/to/tt-metal python tests/check_pconv.py
 TT_METAL_MODELS=/path/to/tt-metal python tests/check_pgates.py
 ```
 
-On the simulator a check takes from under a minute to several minutes. Each prints one line per comparison and a
-final verdict line, and exits 1 on a miss.
+Each check prints one line per comparison and a final verdict line, and exits 1 on a miss.
 
 ## Examples
 
-Each example prints its comparisons and exits 1 when one misses the bars of "Tests" above. The outputs shown are from
-ttsim.
-
-`examples/gated_deltanet.py` runs a Gated DeltaNet layer's recurrence the way a model does: a 64-token prompt through
-`gdn_scan.gated_delta_rule`, then decode steps through `gdn_decode.gated_delta_decode` on the state the prompt left,
-each checked against the float64 recurrence:
+Each example checks itself against float64 with the bars of "Tests" above and exits 1 on a miss:
 
 ```
-python examples/gated_deltanet.py
-prompt of 64: o 0.483 % from the float64 recurrence
-decode 0: o 0.351 %
-...
-state after the last step: 0.234 %
-```
-
-`examples/verify.py` runs the verify step of speculative decoding: 4 rows (the last accepted token, then 3 draft
-tokens) in one `gdn_verify.gated_delta_verify` call, which leaves the state after each of the first 3 rows in a slot.
-Each row's o, each slot and the final state are checked against the float64 recurrence run row by row. Then only 2
-rows are accepted: `gdn_commit.commit` copies slot 1 into the state, bit for bit, and decode goes on from there:
-
-```
-python examples/verify.py
-4 rows in one verify call from a random state, against float64 row by row:
-row 0: o 0.192 % (PCC 0.9999993); slot 0: 0.061 % (PCC 0.9999998)
-row 1: o 0.201 % (PCC 0.9999995); slot 1: 0.075 % (PCC 0.9999997)
-row 2: o 0.178 % (PCC 0.9999996); slot 2: 0.092 % (PCC 0.9999996)
-row 3: o 0.277 % (PCC 0.9999989); the final state: 0.126 % (PCC 0.9999994)
-2 of 4 rows accepted: slot 1 into the state, bit for bit
-the next row from there: o 0.302 % (PCC 0.9999990); the state: 0.104 % (PCC 0.9999995)
-verify: 11 comparisons, all within the bars
-```
-
-`examples/conv.py` runs the causal conv in front of the recurrence, `gdn_conv.gated_conv_step` (4 taps, a bias,
-SiLU): an 8-token chunk from a zero state, which also writes the window it read, then one-token steps on the state the
-chunk left. The outputs are checked against a float64 conv over the whole sequence; the window and the state, copies
-of the inputs, bit for bit:
-
-```
-python examples/conv.py
-chunk of 8: out 0.179 % (PCC 0.9999984)
-  the window: bit for bit
-  the state = the last three inputs: bit for bit
-step 0: out 0.191 % (PCC 0.9999980)
-step 1: out 0.176 % (PCC 0.9999983)
-step 2: out 0.159 % (PCC 0.9999986)
-the state after the last step = the last three inputs: bit for bit
-conv: 7 comparisons, all within the bars
-```
-
-`examples/mamba2_mixer.py` runs `mamba2.Mamba2Mixer` with random bf16 weights at its dimensions (generated as in
-`tests/check_mixer.py`): a 16-token prompt from `new_cache()`, then 2 decode steps on that cache. Each output and the
-SSM state are checked against the same mixer in float64, on the weights as the device holds them:
-
-```
-python examples/mamba2_mixer.py
-prompt of 16: out 0.491 % (PCC 0.9999880)
-SSM state after the prompt: 0.483 % (PCC 0.9999909)
-decode 0: out 0.462 % (PCC 0.9999894)
-decode 1: out 0.497 % (PCC 0.9999877)
-SSM state after the last step: 0.469 % (PCC 0.9999910)
-mixer: 5 comparisons, all within the bars
+python examples/gated_deltanet.py    # a 64-token prompt through the scan, then decode steps
+python examples/verify.py            # 4 rows in one verify call, the state slots, and a 2-row rollback through gdn_commit
+python examples/conv.py              # an 8-token conv chunk, then one-token steps
+python examples/mamba2_mixer.py      # a 16-token prompt and 2 decode steps through the Mamba-2 mixer
 ```
 
 ## Limits
@@ -170,8 +102,6 @@ mixer: 5 comparisons, all within the bars
 - `gated_delta_verify`: at most 32 rows a call. `gated_conv_step`: at most 29 tokens a call.
 - `prefill_conv`: kernel size 4, no bias.
 - The KDA and Mamba-2 modes keep the state in float32. The gated delta rule takes a bf16 or float32 state.
-- Accuracy is that of the device's arithmetic: the FPU reads float32 operands at TF32. The tests' bars say how close
-  each op comes to float64.
 
 ## Origins and license
 

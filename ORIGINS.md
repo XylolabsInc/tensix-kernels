@@ -11,7 +11,7 @@ Where every file of this repository comes from, and how that was checked.
   is copied beyond calls of its public APIs.
 
 No file is copied from tt-metal or from any other code base. Code that needed anything beyond stock tt-metal
-v0.81.1 was left out (each package's README, "Left out").
+v0.81.1 was left out.
 
 ## How it was checked
 
