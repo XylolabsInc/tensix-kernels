@@ -53,8 +53,10 @@ def head_rows(device, weight):
 
 
 def check_rows(rows_t, dim, vocab=None):
-    """A bf16 head table pick can gather from: row-major, interleaved in DRAM, one page a vocabulary row ([vocab, dim]
-    or [1, 1, vocab, dim]; head_rows', or a tied embedding table in ttnn.embedding's layout)."""
+    """A bf16 head table pick can gather from: row-major, interleaved in DRAM, one page a vocabulary row ([rows, dim]
+    or [1, 1, rows, dim]; head_rows', or a tied embedding table in ttnn.embedding's layout). vocab, when given: the ids
+    the pick reads (a padded head's valid count), so the table holds at least that many rows (a tied embedding table of
+    the real vocabulary serves a head padded past it)."""
     shape = tuple(rows_t.shape)
     mc = rows_t.memory_config()
     assert (
@@ -64,7 +66,7 @@ def check_rows(rows_t, dim, vocab=None):
         and mc.buffer_type == ttnn.BufferType.DRAM
         and all(s == 1 for s in shape[:-2])
         and shape[-1] == dim
-        and (vocab is None or shape[-2] == vocab)
+        and (vocab is None or shape[-2] >= vocab)
     ), (shape, rows_t.dtype, rows_t.layout, mc, dim, vocab)
 
 

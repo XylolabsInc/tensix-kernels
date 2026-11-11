@@ -115,7 +115,7 @@ class DeviceHead:
         if rescore and self.device_pick:
             assert 1 <= top <= 32, f"lmhead: the device pick rescores at most 32 candidates, top {top}"
             if rows is not None:
-                head_pick.check_rows(rows, dim, vocab)
+                head_pick.check_rows(rows, dim, vocab if valid is None else valid)
                 self.rows_t = rows
             else:
                 self.rows_t = head_pick.head_rows(device, weight)

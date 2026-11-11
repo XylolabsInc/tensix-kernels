@@ -10,7 +10,8 @@ A random bf16 head [vocab, dim] on a bfloat4_b device head (the dense reader's t
 - the host rescore's tokens against a bf16 host head (bf16 x times bf16 rows, float32 sums, rounded to bf16, argmax with
   the lowest id on ties), token for token;
 - the device pick (head_pick.pick) against the host rescore on the same records, token for token, in bf16 and float32
-  logits, also on a head whose rows repeat in pairs (exact ties: the lowest id must win) and on a padded head (valid=);
+  logits, also on a head whose rows repeat in pairs (exact ties: the lowest id must win) and on a padded head (valid=),
+  its table also given as the valid rows only (a tied embedding of the real vocabulary);
 - the records-only pick (pick_records) with and without a token map against the host's argmax over the same records.
 """
 
@@ -114,6 +115,12 @@ def test_padded_head(device):
     want = lmhead.pick_token(z, cand, VOCAB)
     same(f"padded head (valid {valid}): tokens against the host rescore of the valid candidates", tok, want)
     assert int(tok.max()) < valid
+    # a table of the valid rows only (a tied embedding of the real vocabulary) serves the padded head
+    short = head_pick.head_rows(device, w[:valid])
+    dv = lmhead.DeviceHead(device, w, fmt="bfp4", chunks=CHUNKS, k=k, device_pick=True, valid=valid, rows=short)
+    same(f"padded head (valid {valid}), a table of the valid rows only: tokens", dv(tx, rows), want)
+    dv.deallocate()
+    ttnn.deallocate(short)
     ttnn.deallocate(rows_t)
     dh.deallocate()
 
