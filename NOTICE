@@ -30,6 +30,11 @@ the Tenstorrent copyright notice of each such tt-metal file exactly as it appear
   ttnn/cpp/ttnn/operations/matmul/device/factory/matmul_multicore_reuse_mcast_dram_sharded_program_factory.cpp
   (SPDX-FileCopyrightText: 2026 Tenstorrent USA, Inc.).
 
+- gated_delta/gdn_scan.py: its program layout (which cores take which heads, the circular buffers and the kernel
+  arguments of each kernel) follows
+  ttnn/cpp/ttnn/operations/transformer/chunk_gated_delta_rule/device/chunk_gdn_mono_program_factory.cpp
+  (SPDX-FileCopyrightText: 2026 Tenstorrent USA, Inc.).
+
 - gated_delta/kernels/gdn_compute.cpp, gated_delta/kernels/gdn_ops.h (its tile helpers),
   gated_delta/kernels/gdn_reader.cpp, gated_delta/kernels/gdn_writer.cpp: adapted from the "mono" program of
   tt-metal's chunk_gated_delta_rule op,

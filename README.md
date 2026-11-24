@@ -21,6 +21,8 @@
 Device kernels for LLM decode on Tenstorrent Tensix devices, launched from Python through `ttnn.generic_op` on stock
 tt-metal and ttnn. tt-metal's JIT compiles them at the first call; nothing in tt-metal is rebuilt or patched.
 
+[DEVELOPMENT.md](DEVELOPMENT.md) says how this repository is developed, from Tenstorrent's open software stack only; [ORIGINS.md](ORIGINS.md) says where every file comes from and how that was checked.
+
 | Package | What |
 |---|---|
 | [`dense_reader/`](dense_reader/README.md) | A matmul for decode with `bfloat8_b`, `bfloat4_b` or `bfloat16` weights and fused output stages (per-column scales, SwiGLU / GeGLU, a residual add, fp32 output), top-k records, and block lists (one call over several weights) |
