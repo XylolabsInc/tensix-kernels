@@ -1,4 +1,4 @@
-# lm_head_topk: an LM head that returns token ids, not logits
+# lm_head_topk
 
 `lmhead.py` runs an LM head on a Tenstorrent Tensix device without writing the logits. The head `[vocab, dim]` is cut
 into vocabulary blocks, each a call of the dense reader (`dense_reader/linear.py`) that keeps a top-k of every row.
@@ -40,4 +40,4 @@ step).
 python -s lm_head_topk/tests/test_lm_head.py          # or: pytest -s lm_head_topk/tests
 ```
 
-All checks are exact (token for token, value for value); the test's docstring lists them.
+All checks are exact (token for token, value for value).

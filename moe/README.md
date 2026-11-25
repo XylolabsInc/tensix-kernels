@@ -1,4 +1,4 @@
-# moe: a mixture-of-experts layer that reads only the chosen experts
+# moe
 
 `moe8.py` runs one MoE layer on a Tenstorrent Tensix device through `ttnn.generic_op`, with kernels of its own
 (`kernels/`). Only the k experts each token routed to are read from DRAM. The expert ids are read on the device,
@@ -48,5 +48,5 @@ Module attributes, which the ops' keyword arguments override (defaults in the fi
 python -s moe/tests/test_moe.py            # or: pytest -s moe/tests
 ```
 
-The test's docstring lists what is checked and its bars. The ops run at HiFi2 by default; pass `fidelity="hifi4"`
+The ops run at HiFi2 by default; pass `fidelity="hifi4"`
 for the tighter result.

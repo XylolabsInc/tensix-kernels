@@ -7,8 +7,6 @@
 
 # tensix-kernels
 
-**Device kernels for LLM inference on Tenstorrent Tensix NPUs, launched from Python through ttnn**
-
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
 [![ttnn](https://img.shields.io/badge/ttnn-0.81.1-5B2C83)](https://github.com/tenstorrent/tt-metal/releases/tag/v0.81.1)
 [![ttsim](https://img.shields.io/badge/tested%20on-ttsim-5B2C83)](https://github.com/tenstorrent/ttsim)
@@ -39,7 +37,7 @@ tt-metal and ttnn. tt-metal's JIT compiles them at the first call; nothing in tt
 
 - Python 3.10 or 3.12 with `torch`, and `pip install ttnn==0.81.1` (ttnn 0.81.1 ships wheels for Linux x86_64 with
   glibc 2.34 or later). The compute kernels use the compute API of tt-metal v0.81 (`compute_kernel_hw_startup`,
-  `matmul_block_init`), which older releases name differently.
+  `matmul_block_init`).
 - A Tenstorrent card, or [ttsim](https://github.com/tenstorrent/ttsim), Tenstorrent's simulator (tested with
   v1.15.1).
 - SFPI 7.89.0, the version tt-metal v0.81.1 uses. The wheel does not include it and `python -m ttnn.download_sfpi`
@@ -73,8 +71,6 @@ x = ttnn.from_torch(torch.randn(1, 1, 1, 2048, dtype=torch.bfloat16), layout=ttn
 y = linear.matmul(x, w, None)                                                     # [1, 1, 1, 4096] bf16
 ```
 
-Each package's README gives its API, the formats it takes and its test.
-
 ## Tests
 
 Each package has a correctness test against torch (`<package>/tests/`). They run as plain scripts or under pytest
@@ -91,8 +87,7 @@ scripts/run_checks.sh             # every test, then every example (RUNNING.md)
 gated_delta/run_tests.sh          # gated_delta's checks and its four examples (gated_delta/README.md)
 ```
 
-They were run on ttsim with tt-metal / ttnn 0.81.1. Each test's docstring gives its bars: bit for bit where two
-configurations of an op must agree, relative error and PCC against a float64 reference otherwise.
+They were run on ttsim with tt-metal / ttnn 0.81.1.
 
 ## License
 

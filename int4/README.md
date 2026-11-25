@@ -1,4 +1,4 @@
-# int4: an int4-weight matmul with group scales along K
+# int4
 
 A matmul for one token (decode) with symmetric int4 weights and one bf16 scale per output channel and 32 inputs
 (G = 32), on Tenstorrent Tensix devices through `ttnn.generic_op`. bf16 activations, fp32 accumulation, bf16 output.
@@ -31,5 +31,5 @@ precise `bfloat8_b` packing).
 python -s int4/tests/test_int4.py
 ```
 
-The test's docstring lists what is checked and its bars. The matmul runs at HiFi2 by default; pass
+The matmul runs at HiFi2 by default; pass
 `fidelity="hifi4"` for the tighter result.

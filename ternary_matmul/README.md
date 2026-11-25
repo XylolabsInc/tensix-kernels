@@ -1,9 +1,9 @@
-# ternary_matmul: a ternary-weight matmul with group scales along K
+# ternary_matmul
 
 Matmuls with ternary weights (trits -1, 0, +1) and one bf16 scale per output channel and G inputs (G a multiple of 32),
 on Tenstorrent Tensix devices through `ttnn.generic_op`: one token (`t2_linear`), many rows (`t2m_linear`), and
 `linear` choosing by rows. bf16 activations, fp32 accumulation, bf16 output. An optional block Hadamard rotation of the
-input (for checkpoints whose ternary weights live in a rotated basis) is fused into the one-token kernel or runs as its
+input is fused into the one-token kernel or runs as its
 own op.
 
 ## Weight formats
@@ -38,7 +38,7 @@ Module attributes: `L1_BUDGET` (None: the device's free L1 span less `L1_MARGIN`
 - The weight is DRAM width-sharded over banks 0 .. banks - 1 (`max_banks` caps the count).
 - `topk` keeps at most 64 candidates a core and one row (one token).
 - Written for tt-metal v0.81 (`common/kernels/dense_ops.h`); the BFP2_b unpack uses a tt-llk internal (listed in
-  `AGENTS.md`) that can change between tt-metal versions.
+  `AGENTS.md`).
 
 ## Test
 
@@ -46,5 +46,5 @@ Module attributes: `L1_BUDGET` (None: the device's free L1 span less `L1_MARGIN`
 python -s ternary_matmul/tests/test_ternary.py
 ```
 
-The test's docstring lists what is checked and its bars. The kernels run at HiFi2 by default; pass
+The kernels run at HiFi2 by default; pass
 `fidelity="hifi4"` for the tighter result.

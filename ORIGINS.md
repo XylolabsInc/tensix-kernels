@@ -27,8 +27,8 @@ counted, duplicates included; "Lines in tt-metal" counts those also found in the
 | `.gitignore` | ours |  | 0 | 0 | ignore patterns |
 | `AGENTS.md` | ours |  | 94 | 0 | instructions for coding agents |
 | `CLAUDE.md` | ours |  | 0 | 0 | symbolic link to AGENTS.md |
-| `README.md` | ours |  | 58 | 1 | documentation |
-| `RUNNING.md` | ours |  | 61 | 0 | documentation |
+| `README.md` | ours |  | 54 | 1 | documentation |
+| `RUNNING.md` | ours |  | 57 | 0 | documentation |
 | `common/__init__.py` | ours |  | 2 | 1 |  |
 | `common/device.py` | ours, follows tt-metal | `ttnn/cpp/ttnn/operations/matmul/device/factory/matmul_multicore_reuse_mcast_dram_sharded_program_factory.cpp` | 70 | 9 | `read_vcs` follows the read-VC assignment of tt-metal's `matmul_multicore_reuse_mcast_dram_sharded_program_factory.cpp`; the rest is ours |
 | `common/kernels/dense_ops.h` | ours, follows tt-metal | `tt_metal/hw/ckernels/blackhole/metal/llk_api/llk_sfpu/ckernel_sfpu_silu.h`; `models/demos/gpt_oss/tt/fused_decode/kernels/stream_gate_up_compute.cpp` | 106 | 35 | the SFPU functions take the form of tt-metal's `calculate_silu` (`ckernel_sfpu_silu.h`), and the "rows" helpers (`silu_rows`, `mul_rows`, ...) that of the helpers of the same names in tt-metal's `models/demos/gpt_oss/tt/fused_decode/kernels/stream_gate_up_compute.cpp`; its shared lines are that form (loop header, `dst_reg` access, the bf16 convert) and include lines |
@@ -36,7 +36,7 @@ counted, duplicates included; "Lines in tt-metal" counts those also found in the
 | `common/source.py` | ours |  | 18 | 1 | kernel source loader (header inlining) |
 | `common/testing.py` | ours |  | 21 | 2 |  |
 | `conftest.py` | ours |  | 5 | 4 |  |
-| `dense_reader/README.md` | ours |  | 29 | 0 | documentation |
+| `dense_reader/README.md` | ours |  | 28 | 0 | documentation |
 | `dense_reader/__init__.py` | ours |  | 1 | 1 | package marker (license header only) |
 | `dense_reader/kernels/dense_compute.cpp` | ours, follows tt-metal | `ttnn/cpp/ttnn/operations/matmul/device/kernels/compute/bmm_large_block_zm_fused_bias_activation.cpp` | 190 | 10 | the matmul loop follows tt-metal's `bmm_large_block_zm_fused_bias_activation.cpp` |
 | `dense_reader/kernels/dense_reader.cpp` | ours |  | 119 | 5 |  |
@@ -49,7 +49,7 @@ counted, duplicates included; "Lines in tt-metal" counts those also found in the
 | `examples/lm_head_topk_example.py` | ours |  | 15 | 3 | a runnable example |
 | `examples/moe_example.py` | ours |  | 28 | 3 | a runnable example |
 | `examples/ternary_matmul_example.py` | ours |  | 18 | 3 | a runnable example |
-| `gated_delta/README.md` | ours |  | 69 | 0 | documentation |
+| `gated_delta/README.md` | ours |  | 68 | 0 | documentation |
 | `gated_delta/examples/conv.py` | ours |  | 50 | 5 | a runnable example |
 | `gated_delta/examples/gated_deltanet.py` | ours |  | 47 | 4 | a runnable example |
 | `gated_delta/examples/mamba2_mixer.py` | ours |  | 46 | 3 | a runnable example |
@@ -92,7 +92,7 @@ counted, duplicates included; "Lines in tt-metal" counts those also found in the
 | `gated_delta/tests/check_pgates.py` | ours |  | 39 | 7 | Check prompt gates against stock ttnn ops, bit for bit over logical columns |
 | `gated_delta/tests/check_rows.py` | ours |  | 106 | 5 | Compare multi-row verification with chained decode steps and an fp64 recurrence |
 | `gated_delta/tests/check_ssm.py` | ours |  | 85 | 5 | Compare Mamba-2 decode and verification with an fp64 SSM recurrence |
-| `int4/README.md` | ours |  | 17 | 0 | documentation |
+| `int4/README.md` | ours |  | 16 | 0 | documentation |
 | `int4/__init__.py` | ours |  | 1 | 1 | package marker (license header only) |
 | `int4/kernels/w4a16_compute.cpp` | ours, follows tt-metal | `ttnn/cpp/ttnn/operations/matmul/device/kernels/compute/bmm_large_block_zm_fused_bias_activation.cpp` | 68 | 6 | the matmul loop follows tt-metal's `bmm_large_block_zm_fused_bias_activation.cpp` |
 | `int4/kernels/w4a16_reader.cpp` | ours |  | 85 | 2 |  |
@@ -103,7 +103,7 @@ counted, duplicates included; "Lines in tt-metal" counts those also found in the
 | `int4/kernels/w4dq_writer.cpp` | ours |  | 20 | 2 |  |
 | `int4/tests/test_int4.py` | ours |  | 49 | 4 |  |
 | `int4/w4a16.py` | ours |  | 150 | 13 |  |
-| `lm_head_topk/README.md` | ours |  | 25 | 0 | documentation |
+| `lm_head_topk/README.md` | ours |  | 24 | 0 | documentation |
 | `lm_head_topk/__init__.py` | ours |  | 1 | 1 | package marker (license header only) |
 | `lm_head_topk/head_pick.py` | ours |  | 142 | 8 |  |
 | `lm_head_topk/kernels/head_pick_compute.cpp` | ours |  | 27 | 3 |  |
@@ -112,7 +112,7 @@ counted, duplicates included; "Lines in tt-metal" counts those also found in the
 | `lm_head_topk/kernels/head_pick_writer.cpp` | ours |  | 44 | 3 |  |
 | `lm_head_topk/lmhead.py` | ours |  | 124 | 2 |  |
 | `lm_head_topk/tests/test_lm_head.py` | ours |  | 91 | 4 |  |
-| `moe/README.md` | ours |  | 32 | 0 | documentation |
+| `moe/README.md` | ours |  | 31 | 0 | documentation |
 | `moe/__init__.py` | ours |  | 1 | 1 | package marker (license header only) |
 | `moe/kernels/moe8_rows.h` | ours |  | 30 | 2 |  |
 | `moe/kernels/moe_dn2_reader.cpp` | ours |  | 52 | 5 |  |
@@ -136,7 +136,7 @@ counted, duplicates included; "Lines in tt-metal" counts those also found in the
 | `moe/tests/test_moe.py` | ours |  | 189 | 7 |  |
 | `scripts/run_checks.sh` | ours |  | 18 | 1 | every test and example (RUNNING.md) |
 | `scripts/setup_ttsim.sh` | ours |  | 34 | 1 | the install for running on ttsim (RUNNING.md) |
-| `ternary_matmul/README.md` | ours |  | 29 | 0 | documentation |
+| `ternary_matmul/README.md` | ours |  | 27 | 0 | documentation |
 | `ternary_matmul/__init__.py` | ours |  | 1 | 1 | package marker (license header only) |
 | `ternary_matmul/kernels/had_compute.cpp` | ours |  | 14 | 2 |  |
 | `ternary_matmul/kernels/had_reader.cpp` | ours |  | 41 | 4 |  |
@@ -163,7 +163,7 @@ this repository pins, tt-metal v0.81.1.
    transformers v5.13.0 (5,909), the GPTQ reference implementation
    [IST-DASLab/gptq](https://github.com/IST-DASLab/gptq) (commit `2d65066`, 41),
    [AutoGPTQ](https://github.com/AutoGPTQ/AutoGPTQ) (commit `9f7d370`, 172) and
-   [llama.cpp](https://github.com/ggml-org/llama.cpp) (commit `d3c3e24`, 4,152). Of 10,557 lines
+   [llama.cpp](https://github.com/ggml-org/llama.cpp) (commit `d3c3e24`, 4,152). Of 10,542 lines
    checked, 726 are found in tt-metal's tree and 1 only in one of the other four trees. The lines found
    are license headers, import lines, calls of public APIs and common idioms.
 2. **Tokens.** Each of the 116 `.py`, `.cpp`, `.h` and `.sh` files was compared with every Python, C, C++, CUDA and
@@ -175,8 +175,6 @@ this repository pins, tt-metal v0.81.1.
    ttsim), so none uses a header, function or constant that stock tt-metal lacks.
 
 ## Third-party model code and configs
-
-Adapted files, each with its upstream repository, revision and license.
 
 | File | Upstream | Revision | License |
 |---|---|---|---|

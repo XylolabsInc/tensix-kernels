@@ -83,8 +83,6 @@ TT_METAL_MODELS=/path/to/tt-metal python tests/check_pconv.py
 TT_METAL_MODELS=/path/to/tt-metal python tests/check_pgates.py
 ```
 
-Each check prints one line per comparison and a final verdict line, and exits 1 on a miss.
-
 ## Examples
 
 Each example checks itself against float64 with the bars of "Tests" above and exits 1 on a miss:

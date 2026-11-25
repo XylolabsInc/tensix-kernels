@@ -1,7 +1,6 @@
 # Running the checks
 
-How to install what the packages need and run every package's correctness test and example on ttsim, without a
-Tenstorrent card. These steps were run from scratch, in this order, on a Linux x86_64 host with nothing of
+These steps were run from scratch, in this order, on a Linux x86_64 host with nothing of
 Tenstorrent's installed beforehand. Nothing here was tested on hardware.
 
 ## Versions
@@ -27,7 +26,7 @@ uv-managed CPython 3.12 first on `PATH` fails in `ensurepip`; then give `PYTHON=
 
 `DIR` gets a venv with `ttnn==0.81.1` and `torch==2.15.0` from PyPI, ttsim and the soc descriptor in `DIR/sim`, SFPI
 7.89.0 unpacked into the venv's `ttnn/runtime` (the wheel does not include it, and `python -m ttnn.download_sfpi`
-does not work in 0.81.1), and `DIR/env.sh`. The script runs these steps:
+does not work in 0.81.1), and `DIR/env.sh`.
 
 ```
 python3.12 -m venv DIR/venv
@@ -60,8 +59,7 @@ scripts/run_checks.sh             # or: scripts/run_checks.sh DIR/env.sh
 
 It runs each package's test, then each example, one Python process each on device 0, and ends with
 `run_checks.sh: all passed` or the list of what failed (exit 1). tt-metal writes its logs under `generated/` in the
-current directory; `WORKDIR=...` runs the processes elsewhere. `RUN="..."` puts a command in front of each process (a
-job wrapper, for example). Each test also runs on its own (`python -s <package>/tests/test_<name>.py [test names]`)
+current directory; `WORKDIR=...` runs the processes elsewhere. `RUN="..."` puts a command in front of each process. Each test also runs on its own (`python -s <package>/tests/test_<name>.py [test names]`)
 and under pytest: `python -m pip install pytest`, then `pytest -s -p no:cacheprovider <path to the tree>` (the root
 `conftest.py` opens one device for the session) printed `32 passed` in the same environment.
 
@@ -78,13 +76,10 @@ and under pytest: `python -m pip install pytest`, then `pytest -s -p no:cachepro
 | `examples/int4_example.py` | one token through the int4 matmul against torch |
 | `examples/ternary_matmul_example.py` | one token through the ternary matmul against torch |
 
-The run ends with `run_checks.sh: all passed`; each test's docstring gives its bars.
-
 ## gated_delta
 
 `gated_delta/` has its own runner, `gated_delta/run_tests.sh`: every check in `gated_delta/tests/`, then its four
-examples, each in its own Python process, with each run's output kept in `gated_delta/logs/`. It runs in the same
-kind of environment as above; its own run used these versions:
+examples, each in its own Python process, with each run's output kept in `gated_delta/logs/`. Its own run used these versions:
 
 | Step | Ran on |
 |---|---|
@@ -104,7 +99,6 @@ gated_delta/run_tests.sh                       # or gated_delta/run_tests.sh /pa
 The examples also run on their own (from `gated_delta/`): `python examples/gated_deltanet.py` (a prompt through the
 scan, then decode steps), `python examples/verify.py` (4 rows in one verify call, the state slots and a 2-row
 rollback through `gdn_commit`), `python examples/conv.py` (an 8-token chunk, then one-token steps) and
-`python examples/mamba2_mixer.py` (a 16-token prompt and 2 decode steps). Each checks itself against float64 and
-exits 1 on a miss.
+`python examples/mamba2_mixer.py` (a 16-token prompt and 2 decode steps).
 
 The run ends with `run_tests: 14 passed, 0 failed, 0 skipped` (with `TT_METAL_MODELS` set).

@@ -1,4 +1,4 @@
-# dense_reader: a matmul for decode
+# dense_reader
 
 `linear.py` is a matmul for Tenstorrent Tensix devices, launched through `ttnn.generic_op` with kernels of its own
 (`kernels/`): y = x @ w (\* scale), with bf16 activations, block-float (`bfloat8_b`, `bfloat4_b`) or `bfloat16`
@@ -41,5 +41,5 @@ Options in `**opts`: `cores_per_bank`, `split`, `rows`, `xs`, `kb`, `kw`, `sbw`,
 python -s dense_reader/tests/test_dense_reader.py          # or: pytest -s dense_reader/tests
 ```
 
-The test's docstring lists what is checked and its bars. The bf16 outputs run at HiFi2, the op's default fidelity;
+The bf16 outputs run at HiFi2, the op's default fidelity;
 pass `fidelity="hifi4"` for the tighter result.
