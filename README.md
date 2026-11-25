@@ -12,8 +12,6 @@
 [![ttsim](https://img.shields.io/badge/tested%20on-ttsim-5B2C83)](https://github.com/tenstorrent/ttsim)
 [![Hugging Face](https://img.shields.io/badge/Hugging%20Face-models-FFD21E)](https://huggingface.co/Xylolabs)
 
-`tenstorrent` · `tensix` · `tt-metal` · `ttnn` · `kernels` · `llm-inference` · `gated-deltanet` · `mixture-of-experts`
-
 </div>
 
 Device kernels for LLM decode on Tenstorrent Tensix devices, launched from Python through `ttnn.generic_op` on stock
@@ -37,7 +35,7 @@ tt-metal and ttnn. tt-metal's JIT compiles them at the first call; nothing in tt
 
 - Python 3.10 or 3.12 with `torch`, and `pip install ttnn==0.81.1` (ttnn 0.81.1 ships wheels for Linux x86_64 with
   glibc 2.34 or later). The compute kernels use the compute API of tt-metal v0.81 (`compute_kernel_hw_startup`,
-  `matmul_block_init`).
+  `matmul_block_init`), which older releases name differently.
 - A Tenstorrent card, or [ttsim](https://github.com/tenstorrent/ttsim), Tenstorrent's simulator (tested with
   v1.15.1).
 - SFPI 7.89.0, the version tt-metal v0.81.1 uses. The wheel does not include it and `python -m ttnn.download_sfpi`

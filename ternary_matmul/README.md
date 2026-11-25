@@ -3,7 +3,7 @@
 Matmuls with ternary weights (trits -1, 0, +1) and one bf16 scale per output channel and G inputs (G a multiple of 32),
 on Tenstorrent Tensix devices through `ttnn.generic_op`: one token (`t2_linear`), many rows (`t2m_linear`), and
 `linear` choosing by rows. bf16 activations, fp32 accumulation, bf16 output. An optional block Hadamard rotation of the
-input is fused into the one-token kernel or runs as its
+input (for checkpoints whose ternary weights live in a rotated basis) is fused into the one-token kernel or runs as its
 own op.
 
 ## Weight formats
