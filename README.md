@@ -36,8 +36,7 @@ tt-metal and ttnn. tt-metal's JIT compiles them at the first call; nothing in tt
 - Python 3.10 or 3.12 with `torch`, and `pip install ttnn==0.81.1` (ttnn 0.81.1 ships wheels for Linux x86_64 with
   glibc 2.34 or later). The compute kernels use the compute API of tt-metal v0.81 (`compute_kernel_hw_startup`,
   `matmul_block_init`), which older releases name differently.
-- A Tenstorrent card, or [ttsim](https://github.com/tenstorrent/ttsim), Tenstorrent's simulator (tested with
-  v1.15.1).
+- A Tenstorrent card, or [ttsim](https://github.com/tenstorrent/ttsim), Tenstorrent's simulator (v1.15.1).
 - SFPI 7.89.0, the version tt-metal v0.81.1 uses. The wheel does not include it and `python -m ttnn.download_sfpi`
   does not work in 0.81.1, so unpack it into ttnn's `runtime` directory by hand:
 
@@ -91,5 +90,4 @@ They were run on ttsim with tt-metal / ttnn 0.81.1.
 
 Apache License, Version 2.0 ([LICENSE](LICENSE)). Parts follow the structure of tt-metal files, credited in
 [NOTICE](NOTICE); [ORIGINS.md](ORIGINS.md) lists where every file comes from and how that was checked, and
-[gated_delta/ORIGINS.md](gated_delta/ORIGINS.md) does the same for `gated_delta/`. This is an independent project, not
-affiliated with Tenstorrent.
+[gated_delta/ORIGINS.md](gated_delta/ORIGINS.md) does the same for `gated_delta/`.
