@@ -22,6 +22,7 @@ needed beyond ttnn itself.
 """
 
 import itertools
+import math
 import re
 import sys
 from pathlib import Path
@@ -1100,7 +1101,7 @@ def linear(x, w, scale, memory_config=None, activation=None, out_dtype=None, **o
         assert activation in ("swiglu", "geglu"), "dense_reader.linear: two weights are the GLU's gate and up"
         w, w_up = w
         opts = {**opts, "w_up": w_up}
-    rows, kd = shape[-2], shape[-1]
+    rows, kd = math.prod(shape[:-1]), shape[-1]  # every leading dimension is rows
     if not blocks:
         n = w.shape[-1]
     if activation in ("swiglu", "geglu") and not blocks:
@@ -1109,7 +1110,7 @@ def linear(x, w, scale, memory_config=None, activation=None, out_dtype=None, **o
             opts["glu_act"] = 1
         if opts.get("w_up") is None:
             n //= 2
-    x4 = x if len(shape) == 4 else ttnn.reshape(x, [1, 1, rows, kd])
+    x4 = x if list(shape) == [1, 1, rows, kd] else ttnn.reshape(x, [1, 1, rows, kd])
     tmp = None
     if x4.memory_config().memory_layout != ttnn.TensorMemoryLayout.INTERLEAVED:
         tmp = x4 = ttnn.sharded_to_interleaved(x4, ttnn.L1_MEMORY_CONFIG)
@@ -1119,6 +1120,6 @@ def linear(x, w, scale, memory_config=None, activation=None, out_dtype=None, **o
     if activation is not None and activation not in ("swiglu", "geglu"):
         assert activation == "silu", f"dense_reader.linear: activation {activation!r}"
         y = ttnn.silu(y)
-    if len(shape) != 4 and opts.get("out") is None:  # (a given out is returned as it is)
+    if list(shape) != [1, 1, rows, kd] and opts.get("out") is None:  # (a given out is returned as it is)
         y = ttnn.reshape(y, [*shape[:-1], n])
     return y

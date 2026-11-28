@@ -134,6 +134,27 @@ def test_rows(device):
           t2.rotate(x.double(), signs).float() @ wd, rel=BAR)
 
 
+def test_rows_batched_leading_dims(device):
+    """Every leading dimension is rows: [2, 3, K] gives [2, 3, N]."""
+    k, n, g = 2048, 512, 128
+    trits, scales = make_weight(n, k, g, 8)
+    signs = signs_for(k, 9)
+    w = t2.ternary_weight(device, trits)
+    ts = t2.group_scales(device, scales, t2.HADAMARD_SCALE)
+    mask = t2.hadamard_signs(device, signs)
+    wd = t2.dequantize(trits, scales.to(torch.bfloat16), g).T
+    x = make_x(6, k, 41)
+    xd = ttnn.from_torch(
+        x.reshape(2, 3, k), dtype=ttnn.bfloat16, layout=ttnn.TILE_LAYOUT, device=device,
+        memory_config=ttnn.L1_MEMORY_CONFIG,
+    )
+    y = t2.linear(xd, w, ts, g, hadamard=mask, fidelity=FID)
+    assert list(y.shape) == [2, 3, n], y.shape
+    check("linear x [2, 3, K] with the Hadamard", host(y, 6, n), t2.rotate(x.double(), signs).float() @ wd, rel=BAR)
+
+
+
+
 def test_topk_and_offset_output(device):
     k, n, g, kk = 1024, 1024, 128, 8
     trits, scales = make_weight(n, k, g, 21)

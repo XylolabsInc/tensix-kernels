@@ -212,5 +212,26 @@ def test_linear_rank3(device):
     check(f"linear rank 3 with silu rows {m}", ttnn.to_torch(y).float().reshape(m, n), want)
 
 
+def test_linear_batched_leading_dims(device):
+    """Every leading dimension is rows: [2, 3, K] and [2, 1, 3, K] give [2, 3, N] and [2, 1, 3, N]."""
+    k, n = 1024, 1024
+    x, _ = x_input(device, 6, k, 27)
+    tw, _ = linear.native_weight(device, matrix(n, k, 28), ttnn.bfloat8_b)
+    want = ref(x, held(tw, n))
+    for shape in ((2, 3, k), (2, 1, 3, k)):
+        tx = ttnn.from_torch(
+            x.reshape(shape).to(torch.bfloat16),
+            dtype=ttnn.bfloat16,
+            layout=ttnn.TILE_LAYOUT,
+            device=device,
+            memory_config=ttnn.DRAM_MEMORY_CONFIG,
+        )
+        y = linear.linear(tx, tw, None)
+        assert list(y.shape) == [*shape[:-1], n], (shape, y.shape)
+        check(f"linear x {list(shape)}", ttnn.to_torch(y).float().reshape(6, n), want)
+
+
+
+
 if __name__ == "__main__":
     sys.exit(main(globals()))

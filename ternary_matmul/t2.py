@@ -34,6 +34,7 @@ t2_linear(x, w, scale), t2m_linear(x, w, scale), linear(x, w, scale), hadamard(x
 reference(x, trits, scales, g), rotate(x, signs).
 """
 
+import math
 import sys
 from pathlib import Path
 
@@ -765,11 +766,11 @@ def linear(x, w, scale=None, g=None, memory_config=None, activation=None, rows_k
     g = w.get("g", 128) if g is None else g
     opts.setdefault("hadamard", w.get("had"))
     shape = list(x.shape)
-    rows, kd = shape[-2], shape[-1]
+    rows, kd = math.prod(shape[:-1]), shape[-1]  # every leading dimension is rows
     if opts.get("out") is not None:
         assert rows == 1 and len(shape) == 4, f"t2.linear: out takes one row of a 4-D x, {shape}"
         assert activation is None, "t2.linear: out takes no activation"
-    x4 = x if len(shape) == 4 else ttnn.reshape(x, [1, 1, rows, kd])
+    x4 = x if list(shape) == [1, 1, rows, kd] else ttnn.reshape(x, [1, 1, rows, kd])
     tmp = None
     if x4.memory_config().memory_layout != ttnn.TensorMemoryLayout.INTERLEAVED:
         tmp = x4 = ttnn.sharded_to_interleaved(x4, ttnn.L1_MEMORY_CONFIG)
@@ -795,6 +796,6 @@ def linear(x, w, scale=None, g=None, memory_config=None, activation=None, rows_k
     if activation is not None:
         assert activation == "silu", f"t2.linear: activation {activation!r}"
         y = ttnn.silu(y)
-    if len(shape) != 4 and opts.get("out") is None:
+    if list(shape) != [1, 1, rows, kd] and opts.get("out") is None:
         y = ttnn.reshape(y, [*shape[:-1], w["n"]])
     return y
