@@ -62,7 +62,7 @@ It runs each package's test, then each example, one Python process each on devic
 current directory; `WORKDIR=...` runs the processes elsewhere. `RUN="..."` puts a command in front of each process. Each test also runs on its own (`python -s <package>/tests/test_<name>.py [test names]`)
 and under pytest: `python -m pip install pytest`, then `pytest -s -p no:cacheprovider <path to the tree>` (the root
 `conftest.py` opens one device for the session). The five package suites contain 32 tests; whole-tree pytest also
-collects two origin tests in a git checkout.
+collects two origin tests in a git checkout and 19 host guard tests that need no device.
 
 | Check | What it compares |
 |---|---|

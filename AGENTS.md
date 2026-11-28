@@ -38,7 +38,7 @@ gated_delta/run_tests.sh          # gated_delta's 10 checks and 4 examples, endi
 ```
 
 - One package: `python -s <package>/tests/test_<name>.py` (dense_reader 9, lm_head_topk 6, moe 7, int4 4,
-  ternary_matmul 6), or `pytest -s -p no:cacheprovider <tree>` for all five and the two origin tests (34 total in a git checkout); one `gated_delta` check:
+  ternary_matmul 6), or `pytest -s -p no:cacheprovider <tree>` for all five, the two origin tests and the 19 host guard tests (53 total in a git checkout); one `gated_delta` check:
   `python gated_delta/tests/check_<name>.py`.
 - Run from outside the tree: tt-metal writes `generated/` in the working directory. Unset `PYTHONPATH` and
   `LD_LIBRARY_PATH` if they point at another torch.

@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.1.3
+### Fixed
+- `head_pick.pick` and `pick_records` take at most 32 rows, the rows of the output page, and refuse an `out` that is
+  not a `[1, 1, 32, 32]` uint32 row-major tensor interleaved in DRAM.
+- `gdn_commit.commit` refuses pairs whose destination is another pair's source or destination, as the copies are
+  unordered.
+- The pack cache of `moe8` fingerprints every byte of the weights, not every 4093rd value; a cache made before this
+  release is taken again with `rebuild=True`.
+- `int4_weight`, `ternary_weight` and `moe8.pack` and `pack_cached` check an explicit `banks` against the device's
+  banks and against `max_banks` or `MAX_BANKS` (ValueError).
+
 ## 0.1.2
 ### Fixed
 - `dense_reader.linear` and `ternary_matmul.t2.linear` treat every leading dimension of x as rows.
