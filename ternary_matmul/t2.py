@@ -124,7 +124,7 @@ def ternary_weight(device, trits, *, fmt="bfp2", cores_per_bank=3, sbw=None, ban
     q = trits.T.contiguous()
     k, n = q.shape
     assert k % TILE == 0, f"t2: K = {k} must be a multiple of 32"
-    banks = banks or dev.dram_banks(device, max_banks)
+    banks = dev.resolve_banks(device, banks, max_banks)
     cpb, nt, ns, per, sbw, nc = _layout(device, n, cores_per_bank, sbw, banks)
     if n != nt * TILE:
         q = torch.cat([q, torch.zeros(k, nt * TILE - n, dtype=q.dtype)], dim=1)

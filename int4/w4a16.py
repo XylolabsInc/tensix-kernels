@@ -74,7 +74,7 @@ def int4_weight(device, codes, banks=None, max_banks=None):
     q = codes.T.contiguous()  # [K, N]
     k, n = q.shape
     assert k % TILE == 0, f"w4a16: K = {k} must be a multiple of 32"
-    banks = banks or dev.dram_banks(device, max_banks)
+    banks = dev.resolve_banks(device, banks, max_banks)
     npad = -(-n // (TILE * banks)) * TILE * banks
     if npad != n:
         q = torch.cat([q, torch.zeros(k, npad - n, dtype=q.dtype)], dim=1)

@@ -184,3 +184,70 @@ def test_fingerprint_names_shape_and_dtype(load):
     assert moe8._fingerprint(w) != moe8._fingerprint(w.reshape(8, 4))
     assert moe8._fingerprint(w) != moe8._fingerprint(w.to(torch.bfloat16))
     assert moe8._fingerprint(w.numpy()) == moe8._fingerprint(w)  # numpy weights too
+
+
+# the bank cap holds for explicit banks ------------------------------------------------------------------------------
+
+
+def banks_device(banks=8):
+    return SimpleNamespace(dram_grid_size=lambda: SimpleNamespace(x=banks, y=1))
+
+
+def test_resolve_banks(load):
+    cdev = load("common.device")
+    device = banks_device(8)
+    assert cdev.resolve_banks(device) == 8
+    assert cdev.resolve_banks(device, 0) == 8
+    assert cdev.resolve_banks(device, None, 4) == 4
+    assert cdev.resolve_banks(device, 4, 4) == 4
+    assert cdev.resolve_banks(device, 3) == 3
+    for banks, cap in ((8, 4), (9, None), (-1, None), (5, 4)):
+        with pytest.raises(ValueError, match="banks is"):
+            cdev.resolve_banks(device, banks, cap)
+
+
+def test_resolve_banks_honors_the_global_cap(load, monkeypatch):
+    cdev = load("common.device")
+    monkeypatch.setattr(cdev, "MAX_BANKS", 4)
+    assert cdev.resolve_banks(banks_device(8)) == 4
+    with pytest.raises(ValueError, match="banks is 8"):
+        cdev.resolve_banks(banks_device(8), 8)
+    assert cdev.resolve_banks(banks_device(8), 4) == 4
+
+
+def test_int4_weight_refuses_banks_over_the_cap(load):
+    import torch
+
+    w4a16 = load("int4.w4a16")
+    codes = torch.zeros(64, 32, dtype=torch.int8)
+    with pytest.raises(ValueError, match="banks is 8"):
+        w4a16.int4_weight(banks_device(8), codes, banks=8, max_banks=4)
+    w4a16.dev.MAX_BANKS = 4
+    with pytest.raises(ValueError, match="banks is 8"):
+        w4a16.int4_weight(banks_device(8), codes, banks=8)
+
+
+def test_ternary_weight_refuses_banks_over_the_cap(load):
+    import torch
+
+    t2 = load("ternary_matmul.t2")
+    trits = torch.zeros(64, 32, dtype=torch.int8)
+    with pytest.raises(ValueError, match="banks is 8"):
+        t2.ternary_weight(banks_device(8), trits, banks=8, max_banks=4)
+    t2.dev.MAX_BANKS = 4
+    with pytest.raises(ValueError, match="banks is 8"):
+        t2.ternary_weight(banks_device(8), trits, banks=8)
+
+
+def test_moe_pack_refuses_banks_over_the_cap(load, tmp_path):
+    import torch
+
+    moe8 = load("moe.moe8")
+    cdev = load("common.device")
+    cdev.MAX_BANKS = 4
+    gate_up, down = torch.zeros(2, 32, 64), torch.zeros(2, 32, 32)
+    with pytest.raises(ValueError, match="banks is 8"):
+        moe8.pack(banks_device(8), gate_up, down, banks=8)
+    (tmp_path / "meta.json").write_text("{}")
+    with pytest.raises(ValueError, match="banks is 8"):
+        moe8.pack_cached(banks_device(8), tmp_path, banks=8)

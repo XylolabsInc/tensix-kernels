@@ -61,7 +61,16 @@ import ttnn
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from common import device as dev  # noqa: E402
 from common import source as src  # noqa: E402
-from common.device import FIDELITY, TILE, bank_grid, dram_banks, place, read_vcs, split_arg  # noqa: E402
+from common.device import (  # noqa: E402
+    FIDELITY,
+    TILE,
+    bank_grid,
+    dram_banks,
+    place,
+    read_vcs,
+    resolve_banks,
+    split_arg,
+)
 
 KERNELS = Path(__file__).resolve().parent / "kernels"
 TB = 576  # a BFP4_b tile: 64 exponent bytes, 512 bytes of sign + 3-bit magnitudes
@@ -525,7 +534,7 @@ def pack(device, gate_up, down, cores_per_bank=3, banks=None, cache=None, gu_bia
     kblock: each 32 x 32 block of gate_up and down held transposed in its BFP4_b tile, so the shared exponents run
     along K (the input) in blocks of 16: the layout of a GPTQ-along-K export, whose values it holds exactly; every op
     then runs its matmul with in1 transposed within the tile (KBLOCK)."""
-    banks = banks or dram_banks(device)
+    banks = resolve_banks(device, banks)
     cpb = _clamp_cpb(device, banks, cores_per_bank)
     return pack_upload(device, pack_host(gate_up, down, banks, cpb, cache, gu_bias, rebuild, kblock))
 
@@ -542,7 +551,7 @@ def pack_cached(device, cache, cores_per_bank=3, banks=None, kblock=False, gu_bi
         meta = json.loads((path / "meta.json").read_text())
     except (OSError, ValueError) as e:
         raise PackCacheMismatch(f"moe8 pack cache {path}: no readable meta.json ({type(e).__name__})") from e
-    banks = banks or dram_banks(device)
+    banks = resolve_banks(device, banks)
     cpb = _clamp_cpb(device, banks, cores_per_bank)
     want = {"version": PACK_VERSION, "banks": banks, "cpb": cpb, "kblock": bool(kblock), "a bias": gu_bias is not None}
     have = {

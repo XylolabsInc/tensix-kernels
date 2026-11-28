@@ -42,6 +42,17 @@ def dram_banks(device, max_banks=None):
     return min(n, cap) if cap else n
 
 
+def resolve_banks(device, banks=None, max_banks=None):
+    """The banks a weight is sharded over: dram_banks(device, max_banks) when banks is None or 0, else banks, which
+    must be from 1 to that count (ValueError: more than the device has, or than max_banks / MAX_BANKS allows)."""
+    n = dram_banks(device, max_banks)
+    if not banks:
+        return n
+    if not 1 <= banks <= n:
+        raise ValueError(f"banks is {banks}: it must be from 1 to {n} (the device's banks, at most max_banks)")
+    return banks
+
+
 def bank_grid(banks):
     """The shard grid of a weight width-sharded over DRAM banks 0 .. banks - 1."""
     assert banks >= 1, banks
