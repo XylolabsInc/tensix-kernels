@@ -41,9 +41,9 @@ counted, duplicates included; "Lines in tt-metal" counts those also found in the
 | `dense_reader/kernels/dense_compute.cpp` | ours, follows tt-metal | `ttnn/cpp/ttnn/operations/matmul/device/kernels/compute/bmm_large_block_zm_fused_bias_activation.cpp` | 190 | 10 | the matmul loop follows tt-metal's `bmm_large_block_zm_fused_bias_activation.cpp` |
 | `dense_reader/kernels/dense_reader.cpp` | ours |  | 119 | 5 |  |
 | `dense_reader/kernels/dense_wload.h` | ours |  | 54 | 2 |  |
-| `dense_reader/kernels/dense_writer.cpp` | ours |  | 159 | 3 |  |
-| `dense_reader/linear.py` | ours |  | 490 | 8 |  |
-| `dense_reader/tests/test_dense_reader.py` | ours |  | 126 | 5 |  |
+| `dense_reader/kernels/dense_writer.cpp` | ours |  | 153 | 3 |  |
+| `dense_reader/linear.py` | ours |  | 494 | 8 |  |
+| `dense_reader/tests/test_dense_reader.py` | ours |  | 146 | 6 |  |
 | `examples/dense_reader_example.py` | ours |  | 16 | 3 | a runnable example |
 | `examples/int4_example.py` | ours |  | 17 | 3 | a runnable example |
 | `examples/lm_head_topk_example.py` | ours |  | 15 | 3 | a runnable example |
@@ -145,18 +145,21 @@ counted, duplicates included; "Lines in tt-metal" counts those also found in the
 | `ternary_matmul/kernels/t2_compute.cpp` | ours, follows tt-metal | `ttnn/cpp/ttnn/operations/matmul/device/kernels/compute/bmm_large_block_zm_fused_bias_activation.cpp` | 102 | 6 | the matmul loop follows tt-metal's `bmm_large_block_zm_fused_bias_activation.cpp`; uses tt-llk's internal srcA unpacker reconfiguration for BFP2_b |
 | `ternary_matmul/kernels/t2_reader.cpp` | ours |  | 140 | 8 |  |
 | `ternary_matmul/kernels/t2_wload.h` | ours |  | 36 | 5 |  |
-| `ternary_matmul/kernels/t2_writer.cpp` | ours |  | 73 | 3 |  |
+| `ternary_matmul/kernels/t2_writer.cpp` | ours |  | 76 | 3 |  |
 | `ternary_matmul/kernels/t2m_compute.cpp` | ours, follows tt-metal | `ttnn/cpp/ttnn/operations/matmul/device/kernels/compute/bmm_large_block_zm_fused_bias_activation.cpp` | 76 | 6 | the matmul loop follows tt-metal's `bmm_large_block_zm_fused_bias_activation.cpp`; uses tt-llk's internal srcA unpacker reconfiguration for BFP2_b |
 | `ternary_matmul/kernels/t2m_reader.cpp` | ours |  | 50 | 4 |  |
 | `ternary_matmul/kernels/t2m_writer.cpp` | ours |  | 40 | 2 |  |
 | `ternary_matmul/t2.py` | ours |  | 347 | 18 |  |
-| `ternary_matmul/tests/test_ternary.py` | ours |  | 109 | 7 |  |
+| `ternary_matmul/tests/test_ternary.py` | ours |  | 127 | 8 |  |
 | `tests/test_origins.py` | ours |  | 21 | 4 | every tracked file is listed in ORIGINS.md exactly once |
 
 ## How it was checked
 
 All counts are from a run on 2026-11-24 over the files of this tree (on `d600eca` with this change), against the version
-this repository pins, tt-metal v0.81.1.
+this repository pins, tt-metal v0.81.1. The files the 0.1.2 fixes touched (`dense_reader/kernels/dense_writer.cpp`,
+`dense_reader/linear.py`, `dense_reader/tests/test_dense_reader.py`, `ternary_matmul/kernels/t2_writer.cpp`,
+`ternary_matmul/t2.py`, `ternary_matmul/tests/test_ternary.py`) were counted again on 2026-11-28 against the same
+trees.
 
 1. **Line comparison.** Every line of 30 or more characters (whitespace-normalized), every line counted and duplicates
    included, of each file in the table was looked up in tt-metal v0.81.1 (its source checkout at tag `v0.81.1`,
@@ -164,8 +167,8 @@ this repository pins, tt-metal v0.81.1.
    transformers v5.13.0 (5,909), the GPTQ reference implementation
    [IST-DASLab/gptq](https://github.com/IST-DASLab/gptq) (commit `2d65066`, 41),
    [AutoGPTQ](https://github.com/AutoGPTQ/AutoGPTQ) (commit `9f7d370`, 172) and
-   [llama.cpp](https://github.com/ggml-org/llama.cpp) (commit `d3c3e24`, 4,152). Of 10,542 lines
-   checked, 726 are found in tt-metal's tree and 1 only in one of the other four trees. The lines found
+   [llama.cpp](https://github.com/ggml-org/llama.cpp) (commit `d3c3e24`, 4,152). Of 10,581 lines
+   checked, 728 are found in tt-metal's tree and 1 only in one of the other four trees. The lines found
    are license headers, import lines, calls of public APIs and common idioms.
 2. **Tokens.** Each of the 116 `.py`, `.cpp`, `.h` and `.sh` files was compared with every Python, C, C++, CUDA and
    shell file of the same trees as a set of distinct 10-token sequences (comments dropped, and docstrings for Python):
