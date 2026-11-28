@@ -97,12 +97,12 @@ Bars (`gated_delta/tests/_verdict.py`; every check exits 1 on a miss; `run_tests
   upstream's stock ops; the commit against its sources.
 - A comparison line saying `DIFFERENT`, or a NaN or inf anywhere, fails.
 
-State layouts (all TILE_LAYOUT; every state is preallocated and updated in place at the same address, so traces stay
-valid):
+State layouts (all TILE_LAYOUT; verify/decode recurrent states and convolution states are caller-owned and updated
+in place; prefill allocates its final state unless `out_state` is supplied):
 
 - Gated delta rule and KDA recurrent state: `[B, HV, K, V]`, key dim K as rows, value dim V as columns;
   o = q·S, S' = exp(g)·S + β·kᵀ(v − k·exp(g)·S). The same order as flash-linear-attention's and Hugging Face
-  Qwen3-Next's `recurrent_state`. float32; the gated delta rule also takes bf16; KDA and Mamba-2 are float32 only.
+  Qwen3-Next's `recurrent_state`. float32; the gated delta rule also takes bf16; KDA requires float32.
   Prefill (`gdn_scan.gated_delta_rule`) takes `initial_state` in any shape with that tile order (`[B·HV, K, V]`
   works) or `None` for zeros, and returns `final_state` `[B, HV, K, V]` or writes it into `out_state` (which may be
   `initial_state` itself).
@@ -113,7 +113,7 @@ valid):
 - Conv state: `[B, 3, C]` bf16, rows 0 to 2 the last three inputs, oldest first. Kernel size 4: tap k goes with state
   row k, tap 3 with the new token. Shifted in place; T is 1 to 29 tokens a call, with an optional window
   `[B, 3 + T, C]` for T > 1.
-- Mamba-2 SSM state: `[B, HV, N, P]`, d_state N as rows, head dim P as columns, float32. That is the transpose of
+- Mamba-2 SSM state: `[B, HV, N, P]`, d_state N as rows, head dim P as columns, float32 by default; bf16 storage is also accepted. Updates use fp32 Dst. That is the transpose of
   Hugging Face Mamba2's cache (`[B, H, P, N]`): loading or saving one transposes the last two dims.
 - Gates: raw a and b at element columns `a_col + hv` and `b_col + hv` of their tensors (g and β computed in the kernel
   from `raw_gates = (a_neg, dt_bias)`), or g and β directly without `raw_gates`.

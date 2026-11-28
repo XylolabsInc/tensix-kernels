@@ -377,6 +377,9 @@ def gated_delta_verify(
 ):
     """Run DeltaNet, KDA, or Mamba-2 updates with optional fused convolution.
 
+    DeltaNet and KDA require equal key and value head dimensions. Calls take 1 to
+    32 rows, or at most 29 with folded convolution.
+
     ssm_d supplies D per value head (HV floats) and enables SSM mode. x holds [x | B | C];
     cols = (C's column, B's column, x's column). head_k_dim is state size N and head_v_dim
     is head dimension P; K and V may differ. raw_gates = (A, dt_bias), A = -exp(A_log).

@@ -130,6 +130,12 @@ def fits(x, state, taps, C, bias=None):
 
 
 def prefill_conv(x, state, taps, *, channels, q_dim, k_dim, x_col=0):
+    """Run prompt convolution on batch 1 and 2 to 2048 tokens.
+
+    x is interleaved bf16 TILE; state is None or interleaved bf16 TILE [1, 3, C].
+    Four bf16 TILE taps have shape [1, 1, C]. C, x_col, q_dim and k_dim are
+    multiples of 32, and q_dim + k_dim < C. No bias is supported.
+    """
     device = x.device()
     C = channels
     T = x.shape[1]
@@ -324,6 +330,8 @@ def prefill_gates(x, *, a_col, b_col, HV, dt_bias, A_neg):
 
     beta = sigmoid(b), g = A_neg * softplus(a + dt_bias). The kernel matches the stock
     slices, layout conversions, sigmoid, add, softplus, and multiply bit for bit.
+    x is interleaved bf16 TILE with batch 1 and 2 to 2048 tokens. a_col is
+    tile-aligned, b_col = a_col + HV, and dt_bias and A_neg are bf16.
     Return g, beta as [1, T, HV] bf16 TILE in DRAM. Padding columns may differ.
     """
     device = x.device()

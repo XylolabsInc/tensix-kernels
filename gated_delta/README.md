@@ -101,9 +101,11 @@ python examples/mamba2_mixer.py      # a 16-token prompt and 2 decode steps thro
 ## Limits
 
 - Tiles are 32 x 32. Head dimensions and channel counts are multiples of 32, and value heads are a multiple of key heads.
-- `gated_delta_verify`: at most 32 rows a call. `gated_conv_step`: at most 29 tokens a call.
-- `prefill_conv`: kernel size 4, no bias.
-- The KDA and Mamba-2 modes keep the state in float32. The gated delta rule takes a bf16 or float32 state.
+- `gated_delta_verify` and decode require equal key and value head dimensions for DeltaNet and KDA; SSM permits different N and P. Verify accepts 1 to 32 rows, or at most 29 with folded convolution. Folded convolution requires each key head and its value heads on one core, with at most 32 channel tiles per core.
+- `gated_conv_step`: at most 29 tokens a call.
+- `prefill_conv`: batch 1, 2 to 2048 tokens, interleaved bf16 TILE input; kernel size 4, no bias. Each tap is bf16 TILE `[1, 1, C]`; state is `None` or interleaved bf16 TILE `[1, 3, C]`. Channel count C, `x_col`, `q_dim`, and `k_dim` are multiples of 32; `q_dim + k_dim < C`.
+- `prefill_gates`: batch 1, 2 to 2048 tokens, interleaved bf16 TILE input; `a_col` is tile-aligned, `b_col = a_col + HV`, and `dt_bias` and `A_neg` are bf16.
+- KDA requires float32 state. DeltaNet and Mamba-2 accept bf16 or float32 state; Mamba-2 defaults to float32 storage and updates in fp32 Dst.
 
 ## Origins and license
 
