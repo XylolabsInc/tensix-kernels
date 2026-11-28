@@ -25,13 +25,13 @@ counted, duplicates included; "Lines in tt-metal" counts those also found in the
 | File | Class | Source | Lines checked | Lines in tt-metal | Notes |
 |---|---|---|---|---|---|
 | `.gitignore` | ours |  | 0 | 0 | ignore patterns |
-| `AGENTS.md` | ours |  | 94 | 0 | instructions for coding agents |
-| `CHANGELOG.md` | ours |  | 4 | 0 | release notes |
+| `AGENTS.md` | ours |  | 95 | 0 | instructions for coding agents |
+| `CHANGELOG.md` | ours |  | 11 | 0 | release notes |
 | `CLAUDE.md` | ours |  | 0 | 0 | symbolic link to AGENTS.md |
 | `README.md` | ours |  | 54 | 1 | documentation |
-| `RUNNING.md` | ours |  | 57 | 0 | documentation |
+| `RUNNING.md` | ours |  | 58 | 0 | documentation |
 | `common/__init__.py` | ours |  | 2 | 1 |  |
-| `common/device.py` | ours, follows tt-metal | `ttnn/cpp/ttnn/operations/matmul/device/factory/matmul_multicore_reuse_mcast_dram_sharded_program_factory.cpp` | 70 | 9 | `read_vcs` follows the read-VC assignment of tt-metal's `matmul_multicore_reuse_mcast_dram_sharded_program_factory.cpp`; the rest is ours |
+| `common/device.py` | ours, follows tt-metal | `ttnn/cpp/ttnn/operations/matmul/device/factory/matmul_multicore_reuse_mcast_dram_sharded_program_factory.cpp` | 75 | 9 | `read_vcs` follows the read-VC assignment of tt-metal's `matmul_multicore_reuse_mcast_dram_sharded_program_factory.cpp`; the rest is ours |
 | `common/kernels/dense_ops.h` | ours, follows tt-metal | `tt_metal/hw/ckernels/blackhole/metal/llk_api/llk_sfpu/ckernel_sfpu_silu.h`; `models/demos/gpt_oss/tt/fused_decode/kernels/stream_gate_up_compute.cpp` | 106 | 35 | the SFPU functions take the form of tt-metal's `calculate_silu` (`ckernel_sfpu_silu.h`), and the "rows" helpers (`silu_rows`, `mul_rows`, ...) that of the helpers of the same names in tt-metal's `models/demos/gpt_oss/tt/fused_decode/kernels/stream_gate_up_compute.cpp`; its shared lines are that form (loop header, `dst_reg` access, the bf16 convert) and include lines |
 | `common/kernels/split.h` | ours |  | 19 | 1 | the split loaders' chunk pattern |
 | `common/source.py` | ours |  | 18 | 1 | kernel source loader (header inlining) |
@@ -51,17 +51,17 @@ counted, duplicates included; "Lines in tt-metal" counts those also found in the
 | `examples/moe_example.py` | ours |  | 28 | 3 | a runnable example |
 | `examples/ternary_matmul_example.py` | ours |  | 18 | 3 | a runnable example |
 | `gated_delta/ORIGINS.md` | ours |  | — | — | documentation added to the inventory after the original comparison |
-| `gated_delta/README.md` | ours |  | 68 | 0 | documentation |
+| `gated_delta/README.md` | ours |  | 74 | 0 | documentation |
 | `gated_delta/examples/conv.py` | ours |  | 50 | 5 | a runnable example |
 | `gated_delta/examples/gated_deltanet.py` | ours |  | 47 | 4 | a runnable example |
 | `gated_delta/examples/mamba2_mixer.py` | ours |  | 46 | 3 | a runnable example |
 | `gated_delta/examples/verify.py` | ours |  | 66 | 4 | a runnable example |
-| `gated_delta/gdn_commit.py` | ours |  | 53 | 5 | Commit speculative state with page-for-page copies in one device launch |
+| `gated_delta/gdn_commit.py` | ours |  | 61 | 5 | Commit speculative state with page-for-page copies in one device launch |
 | `gated_delta/gdn_conv.py` | ours |  | 93 | 7 | Run causal conv1d with four taps and SiLU for T Gated DeltaNet tokens |
 | `gated_delta/gdn_decode.py` | ours |  | 17 | 1 | Run one Gated DeltaNet decode step in a single device launch |
-| `gated_delta/gdn_pconv.py` | ours |  | 151 | 19 | `gdn_pconv.stock` calls upstream's model code, which is not included here |
+| `gated_delta/gdn_pconv.py` | ours |  | 157 | 19 | `gdn_pconv.stock` calls upstream's model code, which is not included here |
 | `gated_delta/gdn_scan.py` | ours, follows tt-metal | `ttnn/cpp/ttnn/operations/transformer/chunk_gated_delta_rule/device/chunk_gdn_mono_program_factory.cpp` | 224 | 11 | its program layout follows that file; `chunk_gated_delta_rule_seq_adapter` has the interface of upstream's adapter of the same name |
-| `gated_delta/gdn_verify.py` | ours |  | 302 | 9 | Run R Gated DeltaNet decode steps in order in one device launch |
+| `gated_delta/gdn_verify.py` | ours |  | 304 | 9 | Run R Gated DeltaNet decode steps in order in one device launch |
 | `gated_delta/kernels/gdn_commit_reader.cpp` | ours |  | 29 | 3 | the commit kernels |
 | `gated_delta/kernels/gdn_commit_writer.cpp` | ours |  | 25 | 3 | the commit kernels |
 | `gated_delta/kernels/gdn_compat.h` | ours |  | 67 | 15 | one name for each compute-API call the kernels make, and partial-tile SFPU helpers on tt-metal's LLK entry points |
@@ -79,7 +79,7 @@ counted, duplicates included; "Lines in tt-metal" counts those also found in the
 | `gated_delta/kernels/gdn_reader.cpp` | adapted | tt-metal v0.81.1, `ttnn/cpp/ttnn/operations/transformer/chunk_gated_delta_rule/device/kernels/dataflow/reader_chunk_gated_delta_rule.cpp` and `chunk_gdn_gate_read.hpp`, Apache-2.0 | 187 | 27 | flat token-major or head-major inputs with a column offset; several heads per core |
 | `gated_delta/kernels/gdn_verify_compute.cpp` | ours |  | 555 | 14 | the verify kernels; the compute kernel uses `gdn_ops.h` |
 | `gated_delta/kernels/gdn_verify_reader.cpp` | ours |  | 399 | 19 | the verify kernels |
-| `gated_delta/kernels/gdn_verify_writer.cpp` | adapted | tt-metal v0.81.1, `ttnn/cpp/ttnn/operations/transformer/chunk_gated_delta_rule/device/kernels/dataflow/writer_chunk_gated_delta_rule.cpp`, Apache-2.0 | 157 | 13 | multi-row recurrent states and slots, output row gathering, gated normalization and folded convolution |
+| `gated_delta/kernels/gdn_verify_writer.cpp` | adapted | tt-metal v0.81.1, `ttnn/cpp/ttnn/operations/transformer/chunk_gated_delta_rule/device/kernels/dataflow/writer_chunk_gated_delta_rule.cpp`, Apache-2.0 | 158 | 13 | multi-row recurrent states and slots, output row gathering, gated normalization and folded convolution |
 | `gated_delta/kernels/gdn_writer.cpp` | adapted | tt-metal v0.81.1, `ttnn/cpp/ttnn/operations/transformer/chunk_gated_delta_rule/device/kernels/dataflow/writer_chunk_gated_delta_rule.cpp`, Apache-2.0 | 40 | 11 | flat or head-major output; several heads per core |
 | `gated_delta/mamba2.py` | ours |  | 86 | 6 | Run a Nemotron-H Mamba-2 mixer in TT-NN |
 | `gated_delta/run_tests.sh` | ours |  | 26 | 1 | every check of `gated_delta/tests/`, then the examples |
@@ -107,7 +107,7 @@ counted, duplicates included; "Lines in tt-metal" counts those also found in the
 | `int4/w4a16.py` | ours |  | 150 | 13 |  |
 | `lm_head_topk/README.md` | ours |  | 24 | 0 | documentation |
 | `lm_head_topk/__init__.py` | ours |  | 1 | 1 | package marker (license header only) |
-| `lm_head_topk/head_pick.py` | ours |  | 142 | 8 |  |
+| `lm_head_topk/head_pick.py` | ours |  | 149 | 8 |  |
 | `lm_head_topk/kernels/head_pick_compute.cpp` | ours |  | 27 | 3 |  |
 | `lm_head_topk/kernels/head_pick_reader.cpp` | ours |  | 76 | 4 |  |
 | `lm_head_topk/kernels/head_pick_records.cpp` | ours |  | 75 | 4 |  |
@@ -134,7 +134,7 @@ counted, duplicates included; "Lines in tt-metal" counts those also found in the
 | `moe/kernels/moe_gur_writer.cpp` | ours |  | 42 | 3 |  |
 | `moe/kernels/moe_route.cpp` | ours |  | 231 | 19 |  |
 | `moe/kernels/moe_sigmoid_q30.h` | ours |  | 69 | 1 | a fixed-point sigmoid table; `moe8.sigmoid_table()` regenerates it exactly (the test checks it) |
-| `moe/moe8.py` | ours |  | 667 | 18 |  |
+| `moe/moe8.py` | ours |  | 669 | 18 |  |
 | `moe/tests/test_moe.py` | ours |  | 189 | 7 |  |
 | `scripts/run_checks.sh` | ours |  | 18 | 1 | every test and example (RUNNING.md) |
 | `scripts/setup_ttsim.sh` | ours |  | 34 | 1 | the install for running on ttsim (RUNNING.md) |
@@ -152,6 +152,7 @@ counted, duplicates included; "Lines in tt-metal" counts those also found in the
 | `ternary_matmul/kernels/t2m_writer.cpp` | ours |  | 40 | 2 |  |
 | `ternary_matmul/t2.py` | ours |  | 347 | 18 |  |
 | `ternary_matmul/tests/test_ternary.py` | ours |  | 127 | 8 |  |
+| `tests/test_host_guards.py` | ours |  | 126 | n/a | argument and cache guards run on the host with a stand-in ttnn |
 | `tests/test_origins.py` | ours |  | 21 | 4 | every tracked file is listed in ORIGINS.md exactly once |
 
 ## How it was checked
@@ -161,6 +162,10 @@ this repository pins, tt-metal v0.81.1. The files the 0.1.2 fixes and release to
 `dense_reader/kernels/dense_writer.cpp`, `dense_reader/linear.py`, `dense_reader/tests/test_dense_reader.py`,
 `ternary_matmul/kernels/t2_writer.cpp`, `ternary_matmul/t2.py`, `ternary_matmul/tests/test_ternary.py`) were counted
 again on 2026-11-28 against the same trees.
+For the 0.1.3 fixes, the "Lines checked" column of every row was recounted on 2026-11-28 (`git ls-files`, lines of
+30 or more characters after whitespace normalization) and `tests/test_host_guards.py` was added. The "Lines in
+tt-metal" column and the token comparison below were not rerun: they still describe the earlier runs, and the new
+file's row has no count there ("n/a").
 
 1. **Line comparison.** Every line of 30 or more characters (whitespace-normalized), every line counted and duplicates
    included, of each file in the table was looked up in tt-metal v0.81.1 (its source checkout at tag `v0.81.1`,
@@ -168,7 +173,7 @@ again on 2026-11-28 against the same trees.
    transformers v5.13.0 (5,909), the GPTQ reference implementation
    [IST-DASLab/gptq](https://github.com/IST-DASLab/gptq) (commit `2d65066`, 41),
    [AutoGPTQ](https://github.com/AutoGPTQ/AutoGPTQ) (commit `9f7d370`, 172) and
-   [llama.cpp](https://github.com/ggml-org/llama.cpp) (commit `d3c3e24`, 4,152). Of 10,585 lines
+   [llama.cpp](https://github.com/ggml-org/llama.cpp) (commit `d3c3e24`, 4,152). Of 10,757 lines
    checked, 728 are found in tt-metal's tree and 1 only in one of the other four trees. The lines found
    are license headers, import lines, calls of public APIs and common idioms.
 2. **Tokens.** Each of the 116 `.py`, `.cpp`, `.h` and `.sh` files was compared with every Python, C, C++, CUDA and
