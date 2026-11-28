@@ -116,3 +116,44 @@ def test_pick_takes_the_output_page_of_32_rows(load):
     out = tensor(ttnn, (1, 1, 32, 32), ttnn.uint32, ttnn.ROW_MAJOR_LAYOUT)
     pick.check_out(out)
     assert pick.pick(records, x, rows_t, 32, 8, out=out) is out
+
+
+# gated_delta.gdn_commit: the copies are unordered --------------------------------------------------------------------
+
+
+def addressed(ttnn, address, pages=20):
+    """A stand-in state of `pages` tiles at a buffer address (more pages than one batch of the kernels)."""
+    t = tensor(ttnn, (1, 1, 32 * pages, 32), ttnn.bfloat16, ttnn.TILE_LAYOUT)
+    t.buffer_address = lambda: address
+    t.memory_config().is_sharded = lambda: False
+    return t
+
+
+def test_commit_refuses_chained_pairs(load):
+    gdn_commit = load("gdn_commit")
+    a, b, c = (addressed(gdn_commit.ttnn, n) for n in (0x1000, 0x2000, 0x3000))
+    with pytest.raises(ValueError, match="source"):
+        gdn_commit.commit([(a, b), (b, c)])
+    with pytest.raises(ValueError, match="source"):
+        gdn_commit.commit([(b, c), (a, b)])
+    with pytest.raises(
+        ValueError, match="source"
+    ):  # the same buffer through another tensor object
+        gdn_commit.commit([(a, b), (addressed(gdn_commit.ttnn, 0x2000), c)])
+
+
+def test_commit_refuses_two_pairs_with_one_destination(load):
+    gdn_commit = load("gdn_commit")
+    a, b, c = (addressed(gdn_commit.ttnn, n) for n in (0x1000, 0x2000, 0x3000))
+    with pytest.raises(ValueError, match="one destination"):
+        gdn_commit.commit([(a, c), (b, c)])
+
+
+def test_commit_takes_independent_pairs(load):
+    gdn_commit = load("gdn_commit")
+    t = [addressed(gdn_commit.ttnn, 0x1000 * (i + 1)) for i in range(5)]
+    gdn_commit._check_disjoint([(t[0], t[1]), (t[2], t[3])])
+    gdn_commit._check_disjoint(
+        [(t[0], t[1]), (t[0], t[2])]
+    )  # one source, two destinations
+    gdn_commit._check_disjoint([(t[0], t[0])])  # a copy onto itself

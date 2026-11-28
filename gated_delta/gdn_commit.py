@@ -9,9 +9,11 @@ lay the pairs' pages end to end, split them evenly over cores, and copy them in 
 
   commit([(src, dst), ...])
 
-Every tensor is interleaved in DRAM; a pair's two tensors have the same shape, dtype and layout. The pair table (src
-address, dst address, pages, page bytes per pair) is a small DRAM tensor made once per list of pairs (cached by the
-tensors' ids and held with them), so a trace captured around commit() replays it."""
+Every tensor is interleaved in DRAM; a pair's two tensors have the same shape, dtype and layout. The copies run
+without an order between them, so no pair's destination may be another pair's source or destination (ValueError, by
+the buffers' addresses). The pair table (src address, dst address, pages, page bytes per pair) is a small DRAM tensor
+made once per list of pairs (cached by the tensors' ids and held with them), so a trace captured around commit()
+replays it."""
 
 import ttnn
 from gdn_scan import source
@@ -65,9 +67,23 @@ def _table(device, pairs):
     return _TABLES[key][1:]
 
 
+def _check_disjoint(pairs):
+    """ValueError when a pair's destination is another pair's source (the copies are unordered: the destination could
+    receive the old or the new bytes, or a mix) or another pair's destination."""
+    reads = [src.buffer_address() for src, _ in pairs]
+    writes = [dst.buffer_address() for _, dst in pairs]
+    for i, w in enumerate(writes):
+        if w in writes[:i]:
+            raise ValueError(f"gdn_commit: pairs {writes.index(w)} and {i} copy to one destination")
+        for j, r in enumerate(reads):
+            if j != i and r == w:
+                raise ValueError(f"gdn_commit: pair {i}'s destination is pair {j}'s source (the copies are unordered)")
+
+
 def commit(pairs, ncores=None):
     pairs = [tuple(p) for p in pairs]
     assert pairs, "gdn_commit: no pairs"
+    _check_disjoint(pairs)
     for src, dst in pairs:
         for t in (src, dst):
             mc = t.memory_config()
