@@ -61,7 +61,8 @@ It runs each package's test, then each example, one Python process each on devic
 `run_checks.sh: all passed` or the list of what failed (exit 1). tt-metal writes its logs under `generated/` in the
 current directory; `WORKDIR=...` runs the processes elsewhere. `RUN="..."` puts a command in front of each process. Each test also runs on its own (`python -s <package>/tests/test_<name>.py [test names]`)
 and under pytest: `python -m pip install pytest`, then `pytest -s -p no:cacheprovider <path to the tree>` (the root
-`conftest.py` opens one device for the session) printed `32 passed` in the same environment.
+`conftest.py` opens one device for the session). The five package suites contain 32 tests; whole-tree pytest also
+collects two origin tests in a git checkout.
 
 | Check | What it compares |
 |---|---|

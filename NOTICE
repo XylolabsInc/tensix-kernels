@@ -45,7 +45,7 @@ the Tenstorrent copyright notice of each such tt-metal file exactly as it appear
   (SPDX-FileCopyrightText: 2026 Tenstorrent USA, Inc.); gated_delta/ORIGINS.md lists the changes.
 
 The kernels are built against tt-metal's kernel APIs (its compute, dataflow and SFPI headers, and the few internals the
-README lists under "Not documented kernel API"), which are not part of this product.
+`AGENTS.md` lists under "tt-metal internals"), which are not part of this product.
 
 ================================================================================
 

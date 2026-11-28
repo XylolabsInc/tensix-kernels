@@ -28,7 +28,9 @@ stock upstream tt-metal / ttnn and launched through `ttnn.generic_op`. They cove
 - The kernels are compiled from source by tt-metal's JIT at the first call; nothing is prebuilt.
 - The tests run on ttsim, Tenstorrent's simulator, or on a device. `check_pconv.py`, `check_pgates.py` and
   `check.py --native` also run upstream's stock path for comparison. They need a tt-metal checkout's `models/`
-  importable: set `TT_METAL_MODELS` (or `TT_METAL_HOME`) to the checkout, or put it on `PYTHONPATH`.
+  importable. For `check_pconv.py` and `check_pgates.py`, set `TT_METAL_MODELS` or `TT_METAL_HOME` to the checkout,
+  or put it on `PYTHONPATH`. For `check.py --native`, put the checkout on `PYTHONPATH`. The runner only enables
+  the two stock-path checks when `TT_METAL_MODELS` is set.
 - The compute kernels also call a few tt-llk internals, validated on v0.81.x and listed in `AGENTS.md`.
 - `gdn_scan.L1_BUDGET` caps the circular buffers a core may use; set it to your device's worker L1.
 
@@ -85,7 +87,9 @@ TT_METAL_MODELS=/path/to/tt-metal python tests/check_pgates.py
 
 ## Examples
 
-Each example checks itself against float64 with the bars of "Tests" above and exits 1 on a miss:
+`gated_deltanet.py` prints relative L2 errors against float64 without enforcing a threshold. The other examples
+check against float64 with the bars of "Tests" above and exit 1 on a miss. The runner reports the exit status of
+each example, so a pass for `gated_deltanet.py` does not certify its printed errors:
 
 ```
 python examples/gated_deltanet.py    # a 64-token prompt through the scan, then decode steps

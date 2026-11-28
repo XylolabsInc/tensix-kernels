@@ -79,8 +79,8 @@ python -s lm_head_topk/tests/test_lm_head.py
 python -s moe/tests/test_moe.py
 python -s int4/tests/test_int4.py
 python -s ternary_matmul/tests/test_ternary.py
-pytest -s .                       # the same, with pytest installed
-scripts/run_checks.sh             # every test, then every example (RUNNING.md)
+pytest -s .                       # the five package suites and the origin tests
+scripts/run_checks.sh             # five package suites, then five examples (RUNNING.md)
 gated_delta/run_tests.sh          # gated_delta's checks and its four examples (gated_delta/README.md)
 ```
 
