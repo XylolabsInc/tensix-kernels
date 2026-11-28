@@ -231,6 +231,24 @@ def test_linear_batched_leading_dims(device):
         check(f"linear x {list(shape)}", ttnn.to_torch(y).float().reshape(6, n), want)
 
 
+def test_plan_counts_the_residual_cb(device):
+    """A plan that fits only without the residual's CB is refused when a residual is passed."""
+    k, n = 1024, 1024
+    _, tx = x_input(device, 32, k, 33, ttnn.L1_MEMORY_CONFIG)
+    tw, _ = linear.native_weight(device, matrix(n, k, 34), ttnn.bfloat8_b)
+    cfg = dict(linear.CONFIGS[0])
+    cpb = cfg.pop("cores_per_bank", 3)
+    p0 = linear.plan(device, tx, tw, cpb, False, mt=1, noscale=True, **cfg)
+    forced = dict(cfg, kb=p0["KB"], kw=p0["KW"], sbw=p0["SBW"])
+    tight = p0["l1"] + 1024
+    linear.plan(device, tx, tw, cpb, False, mt=1, noscale=True, budget=tight, **forced)
+    raises(
+        "a plan whose residual CB does not fit",
+        AssertionError,
+        lambda: linear.plan(
+            device, tx, tw, cpb, False, mt=1, noscale=True, budget=tight, residual=True, **forced
+        ),
+    )
 
 
 if __name__ == "__main__":

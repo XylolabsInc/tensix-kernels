@@ -205,6 +205,8 @@ def plan(
     out32=False,
     blocks=None,
     max_banks=None,
+    residual=False,
+    topk_bytes=0,
 ):
     """The work split of one row slice of mt tile rows (default: all of x's): {MT, KT, KB, KW, SBW, NC, W_PAGES,
     sharded, split, work: [(core, (bank, pitch, col0, nvalid, n0))], l1, ...}. AssertionError when it does not fit.
@@ -326,6 +328,8 @@ def plan(
         l1_ = x_tiles * 2048 + loaders * w_pages_ * page + (0 if noscale else NC * 2048)
         l1_ += MT * NC * SEGS * 4096  # (the accumulator: every segment's columns)
         l1_ += 2 * sbw * (4096 if out32 else 2048)
+        l1_ += MT * NC * 2048 if residual else 0  # the residual's CB
+        l1_ += topk_bytes  # the top-k records' CB
         return kw_, w_pages_, l1_
 
     def sizes(kb_):
@@ -666,6 +670,10 @@ def matmul(
         assert scale.dtype == ttnn.bfloat16 and scale.memory_config().memory_layout == ttnn.TensorMemoryLayout.INTERLEAVED
     if max_banks is not None:
         opts = {**opts, "max_banks": max_banks}
+    if residual is not None:
+        opts = {**opts, "residual": True}  # the plan counts the residual's CB
+    if topk is not None:
+        opts = {**opts, "topk_bytes": max(64, 8 * topk["k"] * topk["rows"])}  # and the records' CB
     if w_up is not None:
         assert glu, "dense_reader: w_up is the GLU's up weight (glu=True)"
         assert w_up.dtype == w.dtype and tuple(w_up.padded_shape) == tuple(w.padded_shape)
