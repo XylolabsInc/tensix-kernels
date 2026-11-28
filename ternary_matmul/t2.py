@@ -179,7 +179,7 @@ def group_scales(device, scales, factor=1.0):
     )
 
 
-_SIGNS = {}  # sign mask's address -> its host signs (rotate_rows)
+_SIGNS = {}  # id of a sign mask -> (the mask, kept alive so its id and address stay its own; its host signs)
 _ROT = {}  # (device, mask address) -> (the signs as a bf16 row, H_32)
 
 
@@ -199,7 +199,7 @@ def hadamard_signs(device, signs):
         device=device,
         memory_config=ttnn.DRAM_MEMORY_CONFIG,
     )
-    _SIGNS[mask.buffer_address()] = signs.float().clone()
+    _SIGNS[id(mask)] = (mask, signs.float().clone())
     return mask
 
 
@@ -225,9 +225,9 @@ def rotate_rows(x, hadamard):
     width's sign mask (hadamard_signs)."""
     device = x.device()
     m, k = x.shape[-2], x.shape[-1]
-    key = (id(device), hadamard.buffer_address())
+    key = (id(device), id(hadamard))
     if key not in _ROT:
-        signs = _SIGNS[hadamard.buffer_address()]
+        signs = _SIGNS[id(hadamard)][1]
         row, h32 = signs.reshape(1, 1, 1, k), sylvester(32).reshape(1, 1, 32, 32)
         _ROT[key] = tuple(
             ttnn.from_torch(

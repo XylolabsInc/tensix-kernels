@@ -153,6 +153,21 @@ def test_rows_batched_leading_dims(device):
     check("linear x [2, 3, K] with the Hadamard", host(y, 6, n), t2.rotate(x.double(), signs).float() @ wd, rel=BAR)
 
 
+def test_rotate_rows_after_a_mask_is_freed(device):
+    """A new mask that takes a freed mask's address gets its own signs, not the old rotation."""
+    k = 2048
+    x = make_x(5, k, 43)
+    plus = torch.ones(k)
+    minus = signs_for(k, 44)
+    a = t2.hadamard_signs(device, plus)
+    xd = to_dev(device, x)
+    t2.rotate_rows(xd, a)
+    addr = a.buffer_address()
+    ttnn.deallocate(a)
+    b = t2.hadamard_signs(device, minus)
+    y = t2.rotate_rows(xd, b)
+    print(f"  the second mask {'reuses' if b.buffer_address() == addr else 'does not reuse'} the first's address")
+    check("rotate_rows with a second mask", host(y, 5, k), t2.rotate(x.double(), minus).float() * 32, rel=BAR)
 
 
 def test_topk_and_offset_output(device):
