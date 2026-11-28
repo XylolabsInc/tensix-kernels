@@ -36,7 +36,8 @@ the Tenstorrent copyright notice of each such tt-metal file exactly as it appear
   (SPDX-FileCopyrightText: 2026 Tenstorrent USA, Inc.).
 
 - gated_delta/kernels/gdn_compute.cpp, gated_delta/kernels/gdn_ops.h (its tile helpers),
-  gated_delta/kernels/gdn_reader.cpp, gated_delta/kernels/gdn_writer.cpp: adapted from the "mono" program of
+  gated_delta/kernels/gdn_reader.cpp, gated_delta/kernels/gdn_writer.cpp,
+  gated_delta/kernels/gdn_verify_writer.cpp: adapted from the "mono" program of
   tt-metal's chunk_gated_delta_rule op,
   ttnn/cpp/ttnn/operations/transformer/chunk_gated_delta_rule/device/kernels/compute/chunk_gated_delta_rule.cpp,
   .../device/kernels/dataflow/reader_chunk_gated_delta_rule.cpp, chunk_gdn_gate_read.hpp and

@@ -10,7 +10,8 @@ tenstorrent/tt-metal (Apache-2.0) in their head.
 | `kernels/gdn_writer.cpp` | Adapted from tt-metal v0.81.1, `.../device/kernels/dataflow/writer_chunk_gated_delta_rule.cpp`. Changes: flat or head-major output; several heads per core. |
 | `kernels/gdn_ops.h` | The tile helpers of `gdn_compute.cpp` (above, so derived from tt-metal), shared with the verify kernel. |
 | `kernels/gdn_compat.h` | New: one name for each compute-API call the kernels make, and partial-tile SFPU helpers on tt-metal's LLK entry points. |
-| `kernels/gdn_verify_compute.cpp`, `gdn_verify_reader.cpp`, `gdn_verify_writer.cpp` | New. The compute kernel uses `gdn_ops.h`. |
+| `kernels/gdn_verify_compute.cpp`, `gdn_verify_reader.cpp` | New. The compute kernel uses `gdn_ops.h`. |
+| `kernels/gdn_verify_writer.cpp` | Adapted from tt-metal v0.81.1, `ttnn/cpp/ttnn/operations/transformer/chunk_gated_delta_rule/device/kernels/dataflow/writer_chunk_gated_delta_rule.cpp`. Changes: multi-row recurrent states and slots, output row gathering, gated normalization and folded convolution. |
 | `kernels/gdn_conv_compute.cpp`, `gdn_conv_reader.cpp`, `gdn_conv_writer.cpp` | New. They compute what upstream's `_causal_conv1d_decode_t1` and `_causal_conv1d_fir` compute (tt-metal v0.81.1, `models/experimental/gated_attention_gated_deltanet/tt/ttnn_gated_deltanet.py`). |
 | `kernels/gdn_pconv_*.cpp`, `kernels/gdn_pgates_*.cpp` | New. Bit for bit with upstream's `_causal_conv1d_fir` and the gate ops of its prefill, by using the same SFPU operations in the same order. |
 | `kernels/gdn_commit_reader.cpp`, `gdn_commit_writer.cpp` | New. |

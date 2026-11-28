@@ -11,7 +11,7 @@ Where every file of this repository comes from, and how that was checked.
 - **adapted**: taken from a public repository under its declared license (the source, license and changes are in the
   "Source" and "Notes" columns and in the last section); it keeps that source's copyright line beside ours.
 
-9 files follow a tt-metal file and are named in [NOTICE](NOTICE); 4 kernel files of `gated_delta/` are
+9 files follow a tt-metal file and are named in [NOTICE](NOTICE); 5 kernel files of `gated_delta/` are
 adapted from tt-metal's `chunk_gated_delta_rule` op, and [gated_delta/ORIGINS.md](gated_delta/ORIGINS.md) lists the
 changes to them. Code that needed anything beyond stock tt-metal v0.81.1 was left out.
 
@@ -77,7 +77,7 @@ counted, duplicates included; "Lines in tt-metal" counts those also found in the
 | `gated_delta/kernels/gdn_reader.cpp` | adapted | tt-metal v0.81.1, `ttnn/cpp/ttnn/operations/transformer/chunk_gated_delta_rule/device/kernels/dataflow/reader_chunk_gated_delta_rule.cpp` and `chunk_gdn_gate_read.hpp`, Apache-2.0 | 187 | 27 | flat token-major or head-major inputs with a column offset; several heads per core |
 | `gated_delta/kernels/gdn_verify_compute.cpp` | ours |  | 555 | 14 | the verify kernels; the compute kernel uses `gdn_ops.h` |
 | `gated_delta/kernels/gdn_verify_reader.cpp` | ours |  | 399 | 19 | the verify kernels |
-| `gated_delta/kernels/gdn_verify_writer.cpp` | ours |  | 157 | 13 | the verify kernels |
+| `gated_delta/kernels/gdn_verify_writer.cpp` | adapted | tt-metal v0.81.1, `ttnn/cpp/ttnn/operations/transformer/chunk_gated_delta_rule/device/kernels/dataflow/writer_chunk_gated_delta_rule.cpp`, Apache-2.0 | 157 | 13 | multi-row recurrent states and slots, output row gathering, gated normalization and folded convolution |
 | `gated_delta/kernels/gdn_writer.cpp` | adapted | tt-metal v0.81.1, `ttnn/cpp/ttnn/operations/transformer/chunk_gated_delta_rule/device/kernels/dataflow/writer_chunk_gated_delta_rule.cpp`, Apache-2.0 | 40 | 11 | flat or head-major output; several heads per core |
 | `gated_delta/mamba2.py` | ours |  | 86 | 6 | Run a Nemotron-H Mamba-2 mixer in TT-NN |
 | `gated_delta/run_tests.sh` | ours |  | 26 | 1 | every check of `gated_delta/tests/`, then the examples |
