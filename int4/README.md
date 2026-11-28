@@ -10,8 +10,8 @@ A second op turns the same int4 weight into a `bfloat8_b` weight for an ordinary
 |---|---|
 | `int4_weight(device, codes, banks=None, max_banks=None)` | codes `[N_out, K]` int8 in -7..7 as the kernel's weight (a dict; `"t"` is the device tensor) |
 | `group_scales(device, scales)` | scales `[N_out, K/32]` as `[K/32, N]` bf16 TILE in DRAM |
-| `w4a16_linear(x, w, scale, memory_config=None, fidelity="hifi2", **opts)` | y = x @ (q * s).T for one token; x `[1, 1, 1, K]` bf16 TILE interleaved (L1 or DRAM); opts: `cores_per_bank`, `kb`, `kw`, `sbw`, `full_sync`, `split`, `budget` |
-| `dequantize(w, scale, out=None)` | q * s as a `bfloat8_b` `[1, 1, K, N]` weight, DRAM width-sharded over the same banks |
+| `w4a16_linear(x, w, scale, *, memory_config=None, fidelity="hifi2", **opts)` | y = x @ (q * s).T for one token; x `[1, 1, 1, K]` bf16 TILE interleaved (L1 or DRAM); opts: `cores_per_bank`, `kb`, `kw`, `sbw`, `full_sync`, `split`, `budget` |
+| `dequantize(w, scale, out=None, cores_per_bank=3)` | q * s as a `bfloat8_b` `[1, 1, K, N]` weight, DRAM width-sharded over the same banks |
 | `reference(x, codes, scales)`, `dequantized(codes, scales)` | host references |
 
 Module attributes: `L1_BUDGET` (None: the device's free L1 span less `L1_MARGIN`), `PACK_PRECISE` (the dequantize's

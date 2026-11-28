@@ -76,7 +76,7 @@ KERNEL_CONFIG_RING = None  # bytes, for worker_l1_kw (None: unset)
 # Compute the WY inverse per 32 x 32 diagonal block (1) or over the whole chunk (0).
 # Both forms evaluate the same inverse; block inversion reduces matrix work.
 BLOCK_INV = os.environ.get("GDN_BLOCK_INV", "1") != "0"
-# Destination tiles the compute kernel fills per acquire: 1, or 4 (half of Dst with fp32 accumulation).
+# Destination tiles the compute kernel fills per acquire: 1, 2, or 4 (4 is half of Dst with fp32 accumulation).
 DST = int(os.environ.get("GDN_DST", "1"))
 assert DST in (1, 2, 4), "GDN_DST: 1, 2 or 4"
 OPT = os.environ.get("GDN_OPT", "O2")  # the compute kernel's KernelBuildOptLevel

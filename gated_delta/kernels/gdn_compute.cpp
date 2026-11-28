@@ -26,7 +26,7 @@
 //   S = S * exp(g_sum) + k_dec_t @ v_new
 //
 // Compile-time args: Ct, Kt, Vt, NORM, SCR (tiles of each scratch CB), BLOCK_INV (the WY
-// inverse by 32 x 32 diagonal blocks instead of the whole chunk), DST (tiles per acquire: 1 or 4),
+// inverse by 32 x 32 diagonal blocks instead of the whole chunk), DST (tiles per acquire: 1, 2, or 4),
 // GNORM (the output through upstream's gated RMSNorm, gnorm()), GATES (g and beta from the raw a
 // and b columns, raw_gates()), F32S (below).
 //
@@ -86,7 +86,7 @@ ALWI void DONE(uint32_t cb, uint32_t n) {
     }
 }
 
-// Each helper below fills up to DST destination tiles per acquire (1, or 4: half of Dst at fp32)
+// Each helper below fills up to DST destination tiles per acquire (1, 2, or 4; 4 is half of Dst at fp32)
 // and packs them in order.
 constexpr uint32_t DST = get_compile_time_arg_val(6);
 constexpr uint32_t F32S = get_compile_time_arg_val(9);  // the state's update at fp32 (see the head of this file)

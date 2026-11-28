@@ -18,12 +18,12 @@ ttnn has no BFP2 data type, so the weight is a `uint8` ROW_MAJOR tensor DRAM wid
 
 | Function | What |
 |---|---|
-| `ternary_weight(device, trits, fmt="bfp2", cores_per_bank=3, sbw=None, banks=None, max_banks=None)` | trits `[N_out, K]` as the kernel's weight (a dict; `"t"` is the device tensor) |
+| `ternary_weight(device, trits, *, fmt="bfp2", cores_per_bank=3, sbw=None, banks=None, max_banks=None)` | trits `[N_out, K]` as the kernel's weight (a dict; `"t"` is the device tensor) |
 | `group_scales(device, scales, factor=1.0)` | scales `[N_out, K/G]` as `[K/G, N]` bf16 TILE in DRAM |
 | `hadamard_signs(device, signs)` | the rotation's +-1 signs `[K]` as the kernels' sign masks |
-| `t2_linear(x, w, scale, g=128, hadamard=None, memory_config=None, fidelity="hifi2", kw=None, split=True, topk=None, out=None, col0=0, gap=None)` | one token; `topk`: the writers keep each core's top k (the dense reader's record format, `dense_reader.linear.topk_result` / `topk_records`); `out`, `col0`, `gap`: write into a wider output at a column offset, optionally in two runs |
+| `t2_linear(x, w, scale, g=128, *, hadamard=None, memory_config=None, fidelity="hifi2", kw=None, split=True, topk=None, out=None, col0=0, gap=None)` | one token; `topk`: the writers keep each core's top k (the dense reader's record format, `dense_reader.linear.topk_result` / `topk_records`); `out`, `col0`, `gap`: write into a wider output at a column offset, optionally in two runs |
 | `t2m_linear(x, w, scale, g=128, ...)` | many rows (x already in the weights' basis) |
-| `linear(x, w, scale=None, g=None, activation=None, rows_kernel=True, **opts)` | any rank; one row runs `t2_linear`, more rows `rotate_rows` and `t2m_linear` |
+| `linear(x, w, scale=None, g=None, memory_config=None, activation=None, rows_kernel=True, **opts)` | any rank; one row runs `t2_linear`, more rows `rotate_rows` and `t2m_linear` |
 | `hadamard(x, mask)`, `rotate_rows(x, mask)` | the rotation alone (one token on the device; many rows in ttnn ops) |
 | `reference(x, trits, scales, g)`, `rotate(x, signs)`, `dequantize(trits, scales, g)` | host references |
 

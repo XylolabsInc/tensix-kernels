@@ -32,7 +32,7 @@ ALWI void DONE(uint32_t cb, uint32_t n) {
     }
 }
 
-// Each helper below fills up to DST destination tiles per acquire (1, or 4: half of Dst at fp32)
+// Each helper below fills up to DST destination tiles per acquire (1, 2, or 4; 4 is half of Dst at fp32)
 // and packs them in order.
 constexpr uint32_t DST = get_compile_time_arg_val(6);
 
