@@ -26,6 +26,7 @@ counted, duplicates included; "Lines in tt-metal" counts those also found in the
 |---|---|---|---|---|---|
 | `.gitignore` | ours |  | 0 | 0 | ignore patterns |
 | `AGENTS.md` | ours |  | 94 | 0 | instructions for coding agents |
+| `CHANGELOG.md` | ours |  | 4 | 0 | release notes |
 | `CLAUDE.md` | ours |  | 0 | 0 | symbolic link to AGENTS.md |
 | `README.md` | ours |  | 54 | 1 | documentation |
 | `RUNNING.md` | ours |  | 57 | 0 | documentation |
@@ -156,10 +157,10 @@ counted, duplicates included; "Lines in tt-metal" counts those also found in the
 ## How it was checked
 
 All counts are from a run on 2026-11-24 over the files of this tree (on `d600eca` with this change), against the version
-this repository pins, tt-metal v0.81.1. The files the 0.1.2 fixes touched (`dense_reader/kernels/dense_writer.cpp`,
-`dense_reader/linear.py`, `dense_reader/tests/test_dense_reader.py`, `ternary_matmul/kernels/t2_writer.cpp`,
-`ternary_matmul/t2.py`, `ternary_matmul/tests/test_ternary.py`) were counted again on 2026-11-28 against the same
-trees.
+this repository pins, tt-metal v0.81.1. The files the 0.1.2 fixes and release touched (`CHANGELOG.md`,
+`dense_reader/kernels/dense_writer.cpp`, `dense_reader/linear.py`, `dense_reader/tests/test_dense_reader.py`,
+`ternary_matmul/kernels/t2_writer.cpp`, `ternary_matmul/t2.py`, `ternary_matmul/tests/test_ternary.py`) were counted
+again on 2026-11-28 against the same trees.
 
 1. **Line comparison.** Every line of 30 or more characters (whitespace-normalized), every line counted and duplicates
    included, of each file in the table was looked up in tt-metal v0.81.1 (its source checkout at tag `v0.81.1`,
@@ -167,7 +168,7 @@ trees.
    transformers v5.13.0 (5,909), the GPTQ reference implementation
    [IST-DASLab/gptq](https://github.com/IST-DASLab/gptq) (commit `2d65066`, 41),
    [AutoGPTQ](https://github.com/AutoGPTQ/AutoGPTQ) (commit `9f7d370`, 172) and
-   [llama.cpp](https://github.com/ggml-org/llama.cpp) (commit `d3c3e24`, 4,152). Of 10,581 lines
+   [llama.cpp](https://github.com/ggml-org/llama.cpp) (commit `d3c3e24`, 4,152). Of 10,585 lines
    checked, 728 are found in tt-metal's tree and 1 only in one of the other four trees. The lines found
    are license headers, import lines, calls of public APIs and common idioms.
 2. **Tokens.** Each of the 116 `.py`, `.cpp`, `.h` and `.sh` files was compared with every Python, C, C++, CUDA and
