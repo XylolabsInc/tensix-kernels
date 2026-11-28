@@ -157,3 +157,30 @@ def test_commit_takes_independent_pairs(load):
         [(t[0], t[1]), (t[0], t[2])]
     )  # one source, two destinations
     gdn_commit._check_disjoint([(t[0], t[0])])  # a copy onto itself
+
+
+# moe.moe8: the pack cache's fingerprint covers every element ---------------------------------------------------------
+
+
+@pytest.mark.parametrize("index", [0, 4093, 1, 5000, 8191])
+def test_fingerprint_changes_with_any_element(load, index):
+    """The first, a formerly sampled (4093) and unsampled elements, and the last one."""
+    import torch
+
+    moe8 = load("moe.moe8")
+    w = torch.arange(8192, dtype=torch.float32).reshape(2, 64, 64)
+    before = moe8._fingerprint(w)
+    assert moe8._fingerprint(w.clone()) == before
+    changed = w.clone()
+    changed.reshape(-1)[index] += 1
+    assert moe8._fingerprint(changed) != before
+
+
+def test_fingerprint_names_shape_and_dtype(load):
+    import torch
+
+    moe8 = load("moe.moe8")
+    w = torch.zeros(4, 8)
+    assert moe8._fingerprint(w) != moe8._fingerprint(w.reshape(8, 4))
+    assert moe8._fingerprint(w) != moe8._fingerprint(w.to(torch.bfloat16))
+    assert moe8._fingerprint(w.numpy()) == moe8._fingerprint(w)  # numpy weights too

@@ -213,12 +213,15 @@ def gu_groups(it, banks):
 
 
 def _fingerprint(t):
-    """A cheap identity of a weight tensor for the pack cache: its shape, dtype and the sha256 of every 4093rd value
-    (as float32), so a cache made from other weights is not taken."""
-    t = torch.as_tensor(t)
-    sample = t.reshape(-1)[::4093].float().contiguous().numpy()
-    h = hashlib.sha256(sample.tobytes()).hexdigest()[:32]
-    return f"{tuple(t.shape)}:{t.dtype}:{h}"
+    """The identity of a weight tensor for the pack cache: its shape, dtype and the sha256 of all its bytes (read in
+    chunks, so it takes a pass over the weights), so a cache made from weights that differ in any element is not
+    taken."""
+    t = torch.as_tensor(t).detach().cpu().contiguous()
+    raw = t.reshape(-1).view(torch.uint8).numpy()
+    h = hashlib.sha256()
+    for i in range(0, raw.size, 1 << 26):
+        h.update(raw[i : i + (1 << 26)])
+    return f"{tuple(t.shape)}:{t.dtype}:{h.hexdigest()[:32]}"
 
 
 def _bias_tiles(b, it):
