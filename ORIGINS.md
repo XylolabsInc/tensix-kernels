@@ -21,6 +21,7 @@ One row per tracked file, except `LICENSE` (the text of the Apache License, Vers
 `DEVELOPMENT.md`; `tests/test_origins.py` checks that each appears exactly once. "Source" names the file a row follows
 or is adapted from. "Lines checked" counts the lines of 30 or more characters (whitespace-normalized), every line
 counted, duplicates included; "Lines in tt-metal" counts those also found in the tt-metal tree described below.
+These counts record the original comparison and are not updated for subsequent edits.
 
 | File | Class | Source | Lines checked | Lines in tt-metal | Notes |
 |---|---|---|---|---|---|
@@ -49,6 +50,7 @@ counted, duplicates included; "Lines in tt-metal" counts those also found in the
 | `examples/lm_head_topk_example.py` | ours |  | 15 | 3 | a runnable example |
 | `examples/moe_example.py` | ours |  | 28 | 3 | a runnable example |
 | `examples/ternary_matmul_example.py` | ours |  | 18 | 3 | a runnable example |
+| `gated_delta/ORIGINS.md` | ours |  | — | — | documentation added to the inventory after the original comparison |
 | `gated_delta/README.md` | ours |  | 68 | 0 | documentation |
 | `gated_delta/examples/conv.py` | ours |  | 50 | 5 | a runnable example |
 | `gated_delta/examples/gated_deltanet.py` | ours |  | 47 | 4 | a runnable example |

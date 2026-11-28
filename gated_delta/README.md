@@ -103,5 +103,5 @@ python examples/mamba2_mixer.py      # a 16-token prompt and 2 decode steps thro
 
 ## Origins and license
 
-See `ORIGINS.md` for each file's origin. Files adapted from tenstorrent/tt-metal keep its Apache-2.0 notice. The
+See [the root inventory](../ORIGINS.md) for each file's origin and [ORIGINS.md](ORIGINS.md) for kernel and module details. Files adapted from tenstorrent/tt-metal keep its Apache-2.0 notice. The
 rest is new code under the same license.

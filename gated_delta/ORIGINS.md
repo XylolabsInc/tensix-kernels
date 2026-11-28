@@ -1,7 +1,7 @@
 # Origins
 
-Every file, and where it comes from. "New" means written for this repository. The derived files keep the notice of
-tenstorrent/tt-metal (Apache-2.0) in their head.
+Origins and changes for the kernels and modules. See [the root inventory](../ORIGINS.md) for every tracked file.
+"New" means written for this repository. The derived files keep the notice of tenstorrent/tt-metal (Apache-2.0) in their head.
 
 | File | Origin |
 |---|---|

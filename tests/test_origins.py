@@ -21,7 +21,7 @@ def tracked():
         ).stdout
     except (OSError, subprocess.CalledProcessError):
         pytest.skip("not a git checkout")
-    return [p for p in out.splitlines() if Path(p).name not in NOT_LISTED]
+    return [p for p in out.splitlines() if p not in NOT_LISTED]
 
 
 def listed():

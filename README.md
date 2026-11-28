@@ -90,4 +90,4 @@ They were run on ttsim with tt-metal / ttnn 0.81.1.
 
 Apache License, Version 2.0 ([LICENSE](LICENSE)). Parts follow the structure of tt-metal files, credited in
 [NOTICE](NOTICE); [ORIGINS.md](ORIGINS.md) lists where every file comes from and how that was checked, and
-[gated_delta/ORIGINS.md](gated_delta/ORIGINS.md) does the same for `gated_delta/`.
+[gated_delta/ORIGINS.md](gated_delta/ORIGINS.md) details the origins of its kernels and modules.
