@@ -27,7 +27,9 @@ def tracked():
 def listed():
     """The paths in the first column of the "Files" section's table."""
     text = (ROOT / "ORIGINS.md").read_text()
-    section = re.search(r"^## Files\n(.*?)(?=^## |\Z)", text, re.DOTALL | re.MULTILINE).group(1)
+    section = re.search(
+        r"^## Files\n(.*?)(?=^## |\Z)", text, re.DOTALL | re.MULTILINE
+    ).group(1)
     return re.findall(r"^\| `([^`]+)` \|", section, re.MULTILINE)
 
 
