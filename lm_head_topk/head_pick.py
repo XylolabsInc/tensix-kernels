@@ -87,6 +87,19 @@ def check_ids_out(t):
     ), (tuple(t.shape), t.dtype, t.layout, mc)
 
 
+def check_out(t):
+    """A pick's output page: [1, 1, 32, 32] uint32 row-major, interleaved in DRAM, one 128-byte page a row (the
+    writers store row r in page r, so more than 32 rows do not fit)."""
+    mc = t.memory_config()
+    assert (
+        tuple(t.shape) == (1, 1, TILE, TILE)
+        and t.dtype == ttnn.uint32
+        and t.layout == ttnn.ROW_MAJOR_LAYOUT
+        and mc.memory_layout == ttnn.TensorMemoryLayout.INTERLEAVED
+        and mc.buffer_type == ttnn.BufferType.DRAM
+    ), (tuple(t.shape), t.dtype, t.layout, mc)
+
+
 def _cw(dt):
     """A gathered block's tiles: the largest of 8, 4, 2, 1 that divides the row's tiles."""
     return next(c for c in (8, 4, 2, 1) if dt % c == 0)
@@ -108,7 +121,7 @@ def pick(records, x, rows_t, nrows, k, top=16, logits="bf16", out=None, valid=No
     row with no valid candidate gets token 0 and count 0. ids_out: also row 0's token into this one-element uint32
     tensor (check_ids_out)."""
     assert logits in ("bf16", "float32"), logits
-    assert 1 <= top <= 32 and 1 <= nrows, (top, nrows)
+    assert 1 <= top <= 32 and 1 <= nrows <= TILE, (top, nrows)
     device = x.device()
     dim = x.shape[-1]
     assert dim % TILE == 0, dim
@@ -126,6 +139,8 @@ def pick(records, x, rows_t, nrows, k, top=16, logits="bf16", out=None, valid=No
     cores = [ttnn.CoreCoord(i % grid.x, i // grid.x) for i in range(nrows)]
     if out is None:
         out = _out_page(device)
+    else:
+        check_out(out)
     rnd = logits == "bf16"
     if ids_out is not None:
         check_ids_out(ids_out)
@@ -267,6 +282,8 @@ def pick_records(records, nrows, k, vocab, tmap=None, out=None, ids_out=None):
         ), (tuple(tmap.shape), tmap.dtype, tmap.layout, mc, vocab)
     if out is None:
         out = _out_page(device)
+    else:
+        check_out(out)
     mapped = tmap is not None
     mt = tmap if mapped else out  # (no map: out's accessor stands in, never read)
     if ids_out is not None:

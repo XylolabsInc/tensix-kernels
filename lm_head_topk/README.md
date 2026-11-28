@@ -29,7 +29,7 @@ step).
 
 - Up to 16 rows a call (`rows * k <= 64`); x up to 32 rows.
 - `vocab / chunks` a multiple of 32; raise `chunks` for a large vocabulary if a block does not fit.
-- The device pick rescores at most 32 candidates a row (`top <= 32`), one core a row (`rows` at most the worker count).
+- The device pick rescores at most 32 candidates a row (`top <= 32`), one core a row (`rows` at most 32 and the worker count).
 - The pick equals a host rescore's whenever both sum the same products to the same float32; the device's sum order
   differs from torch's, so a near tie in the last bits of the float32 sums can part them.
 - Tested on ttsim (tt-metal / ttnn 0.81.1).
