@@ -196,22 +196,16 @@ void kernel_main() {
                             const uint32_t w0 = h * 128 + t * 8;  // the row's first word in the face
                             for (uint32_t q2 = 0; q2 < 8; ++q2) {
                                 const uint32_t word = e[w0 + q2];
-                                // a quick reject: once the row's smallest kept key is a positive value's (key >=
-                                // 0x8000, raw bits key - 0x8000), a value beats it only if its bf16, as a signed int16,
-                                // is above those raw bits (a negative bf16 is negative as int16). Both halves at or
-                                // below: nothing of this word can enter, as the full test below would find; it only
-                                // rejects, so the kept set is the same.
-                                if (floor >= 0x8000u) {
-                                    const int32_t fr = static_cast<int32_t>(floor - 0x8000u);
-                                    const int32_t lo16 = static_cast<int32_t>(word << 16) >> 16;
-                                    const int32_t hi16 = static_cast<int32_t>(word) >> 16;
-                                    if (lo16 <= fr && hi16 <= fr) {
-                                        continue;
-                                    }
-                                }
                                 for (uint32_t half = 0; half < 2; ++half) {
                                     const uint32_t c = h * 16 + q2 * 2 + half;
-                                    const uint32_t b = half ? (word >> 16) : (word & 0xFFFFu);
+                                    uint32_t b = half ? (word >> 16) : (word & 0xFFFFu);
+                                    // the order of lm_head_topk's pick: -0 equals +0, and every NaN is the
+                                    // largest, whatever its sign (never the empty slot's key 0)
+                                    if ((b & 0x7FFFu) == 0u) {
+                                        b = 0u;
+                                    } else if ((b & 0x7F80u) == 0x7F80u && (b & 0x007Fu) != 0u) {
+                                        b = 0x7FFFu;
+                                    }
                                     const uint32_t k = b ^ (0x8000u | (0x7FFFu & (0u - (b >> 15))));
                                     if (k > floor && c < cn) {
                                         key[t][low[t]] = k;

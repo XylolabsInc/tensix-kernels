@@ -99,7 +99,14 @@ void kernel_main() {
                 volatile tt_l1_ptr uint16_t* e = reinterpret_cast<volatile tt_l1_ptr uint16_t*>(rd + j * ty);
                 const uint32_t g0 = (n0 + col) * 32;
                 for (uint32_t c = 0; c < 32 && g0 + c < n_elems; ++c) {
-                    const uint32_t b = e[(c >> 4) * 256 + (c & 15)];
+                    uint32_t b = e[(c >> 4) * 256 + (c & 15)];
+                    // the order of lm_head_topk's pick: -0 equals +0, and every NaN is the largest,
+                    // whatever its sign (never the empty slot's key 0)
+                    if ((b & 0x7FFFu) == 0u) {
+                        b = 0u;
+                    } else if ((b & 0x7F80u) == 0x7F80u && (b & 0x007Fu) != 0u) {
+                        b = 0x7FFFu;
+                    }
                     const uint32_t k = (b & 0x8000u) ? (~b & 0xFFFFu) : (b | 0x8000u);
                     if (k > key[low]) {
                         key[low] = k;
